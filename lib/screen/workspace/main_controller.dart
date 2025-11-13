@@ -1,3 +1,4 @@
+// BEGIN: FILE WorkspaceMainController.dart
 import 'dart:async';
 import 'dart:convert';
 
@@ -15,7 +16,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:get/get.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:shared_preferences/shared_preferences.dart';    
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sip_ua/sip_ua.dart';
 
 import '../../components/awesome_alert.dart';
@@ -31,7 +32,12 @@ class WorkspaceMainController extends GetxController
   final homeController = Get.put(HomeController());
   final dashboardController = Get.put(DashboardController());
   final history = [0].obs;
-  SIPUAHelper? helper = SIPUAHelper();
+
+  // SỬA LỖI 1: Bỏ '?' (nullable), helper sẽ được khởi tạo ngay
+  SIPUAHelper helper = SIPUAHelper();
+
+  // SỬA LỖI 2: Thêm biến .obs để theo dõi trạng thái SIP
+  final isSipRegistered = false.obs;
 
   ScrollController sc = ScrollController();
   late TabController tabController;
@@ -105,29 +111,31 @@ class WorkspaceMainController extends GetxController
 
   @override
   void onInit() {
-    // TODO: implement onInit
-    super.onInit();
+    // SỬA LỖI 3: Dọn dẹp onInit, bỏ Timer, chạy khởi tạo trực tiếp
+    super.onInit(); // Luôn gọi super() ở đầu
     SystemChrome.setSystemUIOverlayStyle(
       const SystemUiOverlayStyle(
         statusBarColor: Colors.white,
       ),
     );
     dateString.value = "Toàn bộ thời gian";
-    Timer(
-      Duration.zero,
-      () {
-        helper!.addSipUaHelperListener(this);
-        // Giải mã password trước khi sử dụng
-        print(homeController.userData);
-        if (homeController.callData.containsKey("passwordHash")) {
-          final decryptedPassword = CryptoHelper.decrypt(
-              homeController.callData["passwordHash"],
-              homeController.userData["id"]);
-          print({"decryptedPassword": decryptedPassword});
-          callSettingInit(homeController.callData["name"], decryptedPassword);
-        }
-      },
-    );
+
+    // *** BỎ TIMER, KHỞI TẠO TRỰC TIẾP ***
+    helper.addSipUaHelperListener(this); // Dùng 'helper.' (không có '!')
+
+    // Giải mã password trước khi sử dụng
+    print(homeController.userData);
+    if (homeController.callData.containsKey("passwordHash")) {
+      final decryptedPassword = CryptoHelper.decrypt(
+          homeController.callData["passwordHash"],
+          homeController.userData["id"]);
+
+      // Thêm print để debug mật khẩu
+      print("!!! MẬT KHẨU ĐÃ GIẢI MÃ LÀ: $decryptedPassword");
+
+      callSettingInit(homeController.callData["name"], decryptedPassword);
+    }
+    // **********************************
 
     final defaultIndex = Get.arguments?["defaultIndex"];
     if (defaultIndex != null) {
@@ -157,9 +165,15 @@ class WorkspaceMainController extends GetxController
 
   @override
   void onClose() {
-    // TODO: implement onClose
+    // SỬA LỖI 4: Dọn dẹp an toàn, gọi super.onClose() ở CUỐI CÙNG
+
+    // Dọn dẹp của bạn TRƯỚC
+    helper.removeSipUaHelperListener(this); // Dùng 'helper.'
+    _debounce?.cancel();
+    timer?.cancel();
+
+    // Gọi super.onClose() CUỐI CÙNG
     super.onClose();
-    helper!.removeSipUaHelperListener(this);
   }
 
   void callSettingInit(name, pass) {
@@ -173,16 +187,34 @@ class WorkspaceMainController extends GetxController
     settings.displayName = name;
     settings.userAgent = 'Dart SIP Client v1.0.0';
     settings.dtmfMode = DtmfMode.RFC2833;
-    // helper!.start(settings);
+    settings.transportType = TransportType.WS;
+
+    // SỬA LỖI 5: Dùng 'helper.' (không có '!')
+    helper.start(settings);
   }
 
   Future<void> handleCall(phone) async {
+    // SỬA LỖI 6: Kiểm tra biến 'isSipRegistered.value'
+    if (!isSipRegistered.value) {
+      print('SIP HELPER LỖI: Chưa đăng ký (isSipRegistered = false).');
+
+      Get.snackbar(
+        'Chưa sẵn sàng',
+        'Đang kết nối tới máy chủ, vui lòng thử lại sau giây lát.',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+
+      // Dừng hàm, không chạy code bên dưới
+      return;
+    }
+    // ************************************************
+
+    // Code cũ của bạn (bây giờ đã an toàn để chạy)
     Map<Permission, PermissionStatus> statuses = await [
       Permission.microphone,
     ].request();
     if (statuses[Permission.microphone] != PermissionStatus.granted) {
       openAppSettings();
-
       return;
     }
 
@@ -193,7 +225,10 @@ class WorkspaceMainController extends GetxController
     rtc.MediaStream mediaStream;
     mediaStream =
         await rtc.navigator.mediaDevices.getUserMedia(mediaConstraints);
-    helper!.call(
+
+    // Lệnh gọi này bây giờ chỉ chạy khi helper đã sẵn sàng
+    // SỬA LỖI 5: Dùng 'helper.' (không có '!')
+    helper.call(
       "+$phone",
       // voiceonly: true,
       mediaStream: mediaStream,
@@ -629,7 +664,26 @@ class WorkspaceMainController extends GetxController
 
   @override
   void registrationStateChanged(RegistrationState state) {
-    // TODO: implement registrationStateChanged
+    // SỬA LỖI 7: Triển khai (implement) hàm listener này
+    print('### TRẠNG THÁI SIP THAY ĐỔI: ${state.state} ###');
+
+    if (state.state == RegistrationStateEnum.REGISTERED) {
+      isSipRegistered.value = true;
+      print("### SIP ĐÃ SẴN SÀNG ĐỂ GỌI (REGISTERED) ###");
+    } else {
+      // Bị lỗi, hoặc chưa đăng ký
+      isSipRegistered.value = false;
+      if (state.state == RegistrationStateEnum.REGISTRATION_FAILED) {
+        print("### SIP ĐĂNG KÝ THẤT BẠI: ${state.cause} ###");
+        Get.snackbar(
+          'Lỗi kết nối cuộc gọi',
+          'Đăng ký SIP thất bại: ${state.cause}',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
+      }
+    }
   }
 
   @override
@@ -642,3 +696,4 @@ class WorkspaceMainController extends GetxController
     // TODO: implement onNewReinvite
   }
 }
+// END: FILE WorkspaceMainController.dart

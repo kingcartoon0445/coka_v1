@@ -244,8 +244,10 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
                                   return ListTile(
                                       onTap: () async {
                                         // Mark as read on server if currently unread, then navigate
-                                        if (roomData["isRead"] == false) {
-                                          if (roomData["type"] != "COMMENT") {
+                                        bool isRead = roomData["isRead"];
+                                        if (isRead == false) {
+                                          String type = roomData["type"];
+                                          if (type != "COMMENT") {
                                             final res = await ConvApi()
                                                 .setRead(roomData["id"]);
                                             if (res != "") {

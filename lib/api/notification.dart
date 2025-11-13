@@ -47,15 +47,15 @@ class NotificationApi {
     }
   }
 
-  Future updateRead(id) async {
+  Future updateRead(String id) async {
     final apiToken = await getAccessToken();
     try {
-      final response = await dio.put(
-          "$updateNotificationReadApi?Limit=50&$sortDesc&notifyId=$id&Status=0",
-          options: Options(headers: {
-            "Content-Type": "application/json",
-            "Authorization": "Bearer $apiToken",
-          }));
+      final response =
+          await dio.patch(updateNotificationReadApi + "?notifyId=$id",
+              options: Options(headers: {
+                "Content-Type": "application/json",
+                "Authorization": "Bearer $apiToken",
+              }));
       return response.data;
     } on DioException catch (e) {
       final response = e.response;

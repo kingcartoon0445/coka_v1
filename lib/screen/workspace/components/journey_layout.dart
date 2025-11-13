@@ -147,6 +147,7 @@ class _JourneyLayoutState extends State<JourneyLayout> {
               controller: chatController,
               maxLines: 5,
               minLines: 1,
+              autofocus: false,
               keyboardType: TextInputType.multiline,
               textCapitalization: TextCapitalization.sentences,
               decoration: InputDecoration(
@@ -309,7 +310,8 @@ void callMethodBottomSheet() {
                     ),
                   )
                 ],
-              )
+              ),
+              SizedBox(height: MediaQuery.of(context).padding.bottom),
             ],
           ),
         ],

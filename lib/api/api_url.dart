@@ -1,4 +1,4 @@
-var apiBaseUrl = 'https://api.coka.ai/';
+var apiBaseUrl = 'https://dev.coka.ai/';
 const apiAutomationUrl = 'https://automation.coka.ai';
 const apiCallCenterUrl = 'https://callcenter.coka.ai';
 
@@ -21,6 +21,10 @@ const putProfileUpdateCoverApi = '/api/v1/user/profile/updatecover';
 const updateFcmTokenApi = '/api/v1/user/fcm';
 
 //Organization
+String getOrganizationDetailApiV2(String organizationId) =>
+    '${apiBaseUrl}api/v1/organization/$organizationId';
+String getOrganizationQrCodeApi(String organizationId) =>
+    '${apiBaseUrl}api/v2/organization/$organizationId/qrcode';
 const getOrganizationListApi = '/api/v1/organization/getlistpaging';
 const getOrganizationDetailApi = '/api/v1/organization/getdetail/';
 const postOrganizationCreateApi = '/api/v1/organization/create';
@@ -65,7 +69,7 @@ const updateAutomationWorkspaceApi =
 
 //conversation
 const getRoomListApi = '/api/v1/omni/conversation/getlistpaging';
-const setReadApi = '/api/v1/omni/conversation/read/';
+const setReadApi = '/api/v1/integration/omni/conversation/read/';
 const syncConvApi = '/api/v1/omni/conversation/resync';
 const getConvListApi = '/api/v1/social/message/getlistpaging';
 const sendConvApi = '/api/v1/social/message/sendmessage';

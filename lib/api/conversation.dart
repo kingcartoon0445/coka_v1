@@ -158,11 +158,12 @@ class ConvApi {
   Future setRead(convId) async {
     final apiToken = await getAccessToken();
     try {
+      String organizationId = jsonDecode(await getOData())["id"];
       final response = await dio.patch('$setReadApi$convId',
           options: Options(headers: {
             "Content-Type": "application/json",
             "Authorization": "Bearer $apiToken",
-            "organizationId": jsonDecode(await getOData())["id"],
+            "organizationId": organizationId,
           }));
       return response.data;
     } on DioException catch (e) {

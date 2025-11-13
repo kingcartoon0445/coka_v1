@@ -17,13 +17,15 @@ class CallScreenWidget extends StatefulWidget {
   final Call? _call;
   final Map dataItem;
 
-  const CallScreenWidget(this._helper, this._call, {super.key, required this.dataItem});
+  const CallScreenWidget(this._helper, this._call,
+      {super.key, required this.dataItem});
 
   @override
   State<CallScreenWidget> createState() => _MyCallScreenWidget();
 }
 
-class _MyCallScreenWidget extends State<CallScreenWidget> implements SipUaHelperListener {
+class _MyCallScreenWidget extends State<CallScreenWidget>
+    implements SipUaHelperListener {
   final workspaceMainController = g.Get.put(WorkspaceMainController());
   RTCVideoRenderer? _localRenderer = RTCVideoRenderer();
   RTCVideoRenderer? _remoteRenderer = RTCVideoRenderer();
@@ -212,7 +214,7 @@ class _MyCallScreenWidget extends State<CallScreenWidget> implements SipUaHelper
         _localRenderer!.srcObject = stream;
       }
       if (!kIsWeb && !WebRTC.platformIsDesktop) {
-        event.stream?.getAudioTracks().first.enableSpeakerphone(false);
+        event.stream?.getAudioTracks().first.enableSpeakerphone(_speakerOn);
       }
       _localStream = stream;
     }
@@ -235,7 +237,8 @@ class _MyCallScreenWidget extends State<CallScreenWidget> implements SipUaHelper
     MediaStream mediaStream;
     mediaStream = await navigator.mediaDevices.getUserMedia(mediaConstraints);
 
-    call!.answer(helper!.buildCallOptions(!remoteHasVideo), mediaStream: mediaStream);
+    call!.answer(helper!.buildCallOptions(!remoteHasVideo),
+        mediaStream: mediaStream);
   }
 
   void _muteAudio() {
@@ -247,12 +250,11 @@ class _MyCallScreenWidget extends State<CallScreenWidget> implements SipUaHelper
   }
 
   void _toggleSpeaker() {
-    if (_localStream != null) {
-      _speakerOn = !_speakerOn;
-      if (!kIsWeb) {
-        _localStream!.getAudioTracks()[0].enableSpeakerphone(_speakerOn);
-      }
+    _speakerOn = !_speakerOn;
+    if (_localStream != null && !kIsWeb) {
+      _localStream!.getAudioTracks()[0].enableSpeakerphone(_speakerOn);
     }
+    setState(() {});
   }
 
   Widget _buildActionButtons() {
@@ -273,31 +275,53 @@ class _MyCallScreenWidget extends State<CallScreenWidget> implements SipUaHelper
       case CallStateEnum.NONE:
       case CallStateEnum.CONNECTING:
         if (direction == 'INCOMING') {
+          // Thêm nút loa ngoài cho cuộc gọi đến
+          advanceActions.add(buildActionButton(
+            backgroundColor:
+                _speakerOn ? Colors.white : const Color(0x33D4D4D4),
+            icon: Icon(Icons.volume_up,
+                color: _speakerOn ? const Color(0xFF222222) : Colors.white,
+                size: 25),
+            onTap: () => _toggleSpeaker(),
+          ));
           basicActions.add(ActionButton(
             title: "Accept",
             fillColor: Colors.green,
             icon: Icons.phone,
             onPressed: () => _handleAccept(),
           ));
-          basicActions.add(hangupBtn);
+          basicActions.addAll([...advanceActions, hangupBtn]);
         } else {
-          basicActions.add(hangupBtn);
+          // Thêm nút loa ngoài cho cuộc gọi đi
+          advanceActions.add(buildActionButton(
+            backgroundColor:
+                _speakerOn ? Colors.white : const Color(0x33D4D4D4),
+            icon: Icon(Icons.volume_up,
+                color: _speakerOn ? const Color(0xFF222222) : Colors.white,
+                size: 25),
+            onTap: () => _toggleSpeaker(),
+          ));
+          basicActions.addAll([...advanceActions, hangupBtn]);
         }
         break;
       case CallStateEnum.ACCEPTED:
       case CallStateEnum.CONFIRMED:
         {
           advanceActions.add(buildActionButton(
-            backgroundColor: _speakerOn ? Colors.white : const Color(0x33D4D4D4),
+            backgroundColor:
+                _speakerOn ? Colors.white : const Color(0x33D4D4D4),
             icon: Icon(Icons.volume_up,
-                color: _speakerOn ? const Color(0xFF222222) : Colors.white, size: 25),
+                color: _speakerOn ? const Color(0xFF222222) : Colors.white,
+                size: 25),
             onTap: () => _toggleSpeaker(),
           ));
 
           advanceActions.add(buildActionButton(
-            backgroundColor: _audioMuted ? Colors.white : const Color(0x33D4D4D4),
+            backgroundColor:
+                _audioMuted ? Colors.white : const Color(0x33D4D4D4),
             icon: Icon(_audioMuted ? Icons.mic_off : Icons.mic,
-                color: _audioMuted ? const Color(0xFF222222) : Colors.white, size: 25),
+                color: _audioMuted ? const Color(0xFF222222) : Colors.white,
+                size: 25),
             onTap: () => _muteAudio(),
           ));
           basicActions.addAll([...advanceActions, hangupBtn]);
@@ -307,7 +331,18 @@ class _MyCallScreenWidget extends State<CallScreenWidget> implements SipUaHelper
       case CallStateEnum.ENDED:
         break;
       case CallStateEnum.PROGRESS:
-        basicActions.add(hangupBtn);
+        {
+          // Thêm nút loa ngoài ngay cả khi đang đổ chuông
+          advanceActions.add(buildActionButton(
+            backgroundColor:
+                _speakerOn ? Colors.white : const Color(0x33D4D4D4),
+            icon: Icon(Icons.volume_up,
+                color: _speakerOn ? const Color(0xFF222222) : Colors.white,
+                size: 25),
+            onTap: () => _toggleSpeaker(),
+          ));
+          basicActions.addAll([...advanceActions, hangupBtn]);
+        }
         break;
       default:
         print('Other state => $_state');
@@ -318,7 +353,9 @@ class _MyCallScreenWidget extends State<CallScreenWidget> implements SipUaHelper
     actionWidgets.add(
       Padding(
         padding: const EdgeInsets.all(3),
-        child: Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: basicActions),
+        child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: basicActions),
       ),
     );
 
@@ -360,7 +397,8 @@ class _MyCallScreenWidget extends State<CallScreenWidget> implements SipUaHelper
                         },
                         icon: const Padding(
                           padding: EdgeInsets.only(left: 7.0),
-                          child: Icon(Icons.arrow_back_ios, color: Colors.white, size: 23),
+                          child: Icon(Icons.arrow_back_ios,
+                              color: Colors.white, size: 23),
                         )),
                   ),
                 ],
@@ -381,10 +419,12 @@ class _MyCallScreenWidget extends State<CallScreenWidget> implements SipUaHelper
                   ),
                   widget.dataItem['avatar'] == null
                       ? createCircleAvatar(
-                          name: widget.dataItem['fullName'], radius: 75, fontSize: 45)
+                          name: widget.dataItem['fullName'],
+                          radius: 75,
+                          fontSize: 45)
                       : CircleAvatar(
-                          backgroundImage:
-                              getAvatarProvider(widget.dataItem['avatar'] ?? defaultAvatar),
+                          backgroundImage: getAvatarProvider(
+                              widget.dataItem['avatar'] ?? defaultAvatar),
                           radius: 75,
                         ),
                 ],
@@ -394,8 +434,10 @@ class _MyCallScreenWidget extends State<CallScreenWidget> implements SipUaHelper
               ),
               Text(
                 widget.dataItem['fullName'],
-                style:
-                    const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 28),
+                style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 28),
               ),
               buildLoadingAnimation()
             ],
@@ -422,7 +464,8 @@ class _MyCallScreenWidget extends State<CallScreenWidget> implements SipUaHelper
         width: size,
         height: size,
         alignment: Alignment.center,
-        decoration: BoxDecoration(shape: BoxShape.circle, color: backgroundColor),
+        decoration:
+            BoxDecoration(shape: BoxShape.circle, color: backgroundColor),
         child: icon,
       ),
     );

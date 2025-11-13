@@ -71,7 +71,7 @@ class _MainPageState extends State<MainPage> {
                                 if (value) {
                                   apiBaseUrl = "https://dev.coka.ai/";
                                 } else {
-                                  apiBaseUrl = "https://api.coka.ai/";
+                                  apiBaseUrl = "https://dev.coka.ai/";
                                 }
                               },
                             ),
