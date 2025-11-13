@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Coka App</string>
+    <string name="facebook_app_id">1903610109953807</string>
+    <string name="fb_login_protocol_scheme">fb1903610109953807</string>
+    <string name="facebook_client_token">1903610109953807|397fdac0529dd1155f785f1889de4d39</string>
+    <string name="default_notification_channel_id" translatable="false">coka_notification</string>
+</resources>

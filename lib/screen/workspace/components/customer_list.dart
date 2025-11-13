@@ -1,0 +1,80 @@
+import 'package:coka/components/placeholders.dart';
+import 'package:coka/screen/workspace/main_controller.dart';
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+
+import 'customer_item.dart';
+
+class CustomerList extends StatelessWidget {
+  final int groupIndex;
+  const CustomerList({super.key, required this.groupIndex});
+
+  @override
+  Widget build(BuildContext context) {
+    return GetBuilder<WorkspaceMainController>(builder: (controller) {
+      return Obx(() {
+        return RefreshIndicator(
+          onRefresh: () async {
+            controller.onRefresh();
+          },
+          child: controller.isLoading[groupIndex]
+              ? const ListCustomerPlaceholder(
+                  length: 10,
+                )
+              : controller.isRoomEmpty.value
+                  ? SingleChildScrollView(
+                      child: ConstrainedBox(
+                        constraints:
+                            BoxConstraints(minHeight: Get.height - 120),
+                        child: Column(
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.only(
+                                  left: 50.0, right: 50, top: 20),
+                              child: Image.asset(
+                                "assets/images/null_customer.png",
+                              ),
+                            ),
+                            const Text(
+                              "Hiện chưa có khách hàng nào",
+                              style:
+                                  TextStyle(color: Colors.black, fontSize: 16),
+                            )
+                          ],
+                        ),
+                      ),
+                    )
+                  : Stack(
+                      children: [
+                        SingleChildScrollView(
+                          controller: controller.sc,
+                          physics: const ClampingScrollPhysics(),
+                          child: ConstrainedBox(
+                            constraints:
+                                BoxConstraints(minHeight: Get.height - 120),
+                            child: Column(
+                              children: [
+                                ...controller.roomList[groupIndex]
+                                    .map((e) => RoomItem(
+                                          itemData: e,
+                                          index: controller.roomList[groupIndex]
+                                              .indexOf(e),
+                                        ))
+                              ],
+                            ),
+                          ),
+                        ),
+                        if (controller.isLoadingMore[groupIndex])
+                          const Align(
+                              alignment: Alignment.bottomCenter,
+                              child: Padding(
+                                padding: EdgeInsets.only(bottom: 8.0),
+                                child: CircularProgressIndicator(),
+                              ))
+                      ],
+                    ),
+        );
+      });
+    });
+  }
+}
