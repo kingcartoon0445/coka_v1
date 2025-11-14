@@ -59,6 +59,7 @@ dependencies:
   shared_preferences: ^2.2.0
   flutter_webrtc: ^0.12.2
   dio: ^5.1.1
+  pretty_dio_logger: ^1.4.0
   dropdown_search: ^6.0.1
   flutter_staggered_animations: ^1.1.1
   url_launcher: ^6.1.10

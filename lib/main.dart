@@ -122,15 +122,44 @@ Future<void> _showNotification(message) async {
 }
 
 Future sendToken() async {
-  final fcmToken = await FirebaseMessaging.instance.getToken();
+  try {
+    // 检查 Firebase 是否已初始化
+    if (Firebase.apps.isEmpty) {
+      print("Firebase chưa được khởi tạo, bỏ qua việc lấy FCM token");
+      return;
+    }
 
-  print(fcmToken.toString());
-  UserApi().updateFcmToken({
-    "deviceId": await getDeviceId(),
-    "version": await getVersion(),
-    "fcmToken": fcmToken.toString(),
-    "status": 1
-  });
+    // 检查通知权限状态（仅在 iOS 上需要）
+    if (Platform.isIOS) {
+      final NotificationSettings settings =
+          await FirebaseMessaging.instance.getNotificationSettings();
+      if (settings.authorizationStatus == AuthorizationStatus.denied ||
+          settings.authorizationStatus == AuthorizationStatus.notDetermined) {
+        print("Thông báo chưa được cấp quyền, bỏ qua việc lấy FCM token");
+        return;
+      }
+    }
+
+    // 获取 FCM token，添加错误处理
+    final fcmToken = await FirebaseMessaging.instance.getToken();
+
+    if (fcmToken != null && fcmToken.isNotEmpty) {
+      print("FCM Token: $fcmToken");
+      UserApi().updateFcmToken({
+        "deviceId": await getDeviceId(),
+        "version": await getVersion(),
+        "fcmToken": fcmToken,
+        "status": 1
+      });
+    } else {
+      print("Không thể lấy FCM token: token rỗng");
+    }
+  } catch (e) {
+    // 捕获并记录错误，但不中断应用运行
+    print("Lỗi khi lấy FCM token: $e");
+    // 在某些平台（如 iOS 模拟器）上，FCM 可能不可用
+    // 这是正常的，不应该中断应用
+  }
 }
 
 void main() async {
@@ -209,7 +238,11 @@ void main() async {
             AndroidFlutterLocalNotificationsPlugin>()
         ?.createNotificationChannel(channel);
     Noti.initialize(flutterLocalNotificationsPlugin);
-    sendToken();
+    // 使用 unawaited 或 try-catch 来避免未处理的异常
+    // sendToken 内部已经有错误处理，所以可以安全地异步调用
+    sendToken().catchError((error) {
+      print("Lỗi khi gửi FCM token: $error");
+    });
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
   } catch (e) {
     print(e);

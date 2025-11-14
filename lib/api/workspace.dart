@@ -3,12 +3,22 @@ import 'dart:convert';
 import 'package:coka/screen/home/home_controller.dart';
 import 'package:dio/dio.dart';
 import 'package:get/get.dart';
+import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 
 import '../constants.dart';
 import 'api_url.dart';
 
 class WorkspaceApi {
-  final dio = Dio(BaseOptions(baseUrl: apiBaseUrl));
+  final dio = Dio(BaseOptions(baseUrl: apiBaseUrl))
+    ..interceptors.add(PrettyDioLogger(
+      requestHeader: true, // 显示请求头
+      requestBody: true, // 显示请求体
+      responseBody: true, // 显示响应体
+      responseHeader: false, // 不显示响应头（可选，减少日志量）
+      error: true, // 显示错误信息
+      compact: false, // 不压缩日志（显示完整格式）
+      maxWidth: 90, // 日志最大宽度
+    ));
 
   Future getWorkspaceList(searchText) async {
     final apiToken = await getAccessToken();

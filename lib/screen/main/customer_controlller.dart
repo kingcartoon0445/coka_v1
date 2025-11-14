@@ -1,6 +1,7 @@
-// BEGIN: FILE WorkspaceMainController.dart
+// BEGIN: FILE CustomerHomeController.dart
 import 'dart:async';
 import 'dart:convert';
+import 'dart:developer';
 
 import 'package:coka/api/customer.dart';
 import 'package:coka/api/workspace.dart';
@@ -8,7 +9,9 @@ import 'package:coka/components/search_anchor.dart';
 import 'package:coka/main.dart';
 import 'package:coka/models/chip_data.dart';
 import 'package:coka/screen/home/home_controller.dart';
+import 'package:coka/screen/workspace/getx/customer_controller.dart';
 import 'package:coka/screen/workspace/getx/dashboard_controller.dart';
+import 'package:coka/screen/workspace/pages/callscreen.dart';
 import 'package:coka/screen/workspace/pages/customers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -23,14 +26,12 @@ import '../../components/awesome_alert.dart';
 import '../../components/chip_input.dart';
 import '../../constants.dart';
 import '../../utils/crypto_helper.dart';
-import 'getx/customer_controller.dart';
-import 'pages/callscreen.dart';
 
-class WorkspaceMainController extends GetxController
+class CustomerHomeController extends GetxController
     with GetSingleTickerProviderStateMixin
     implements SipUaHelperListener {
   final homeController = Get.put(HomeController());
-  final dashboardController = Get.put(DashboardController());
+  // final dashboardController = Get.put(DashboardController());
   final history = [0].obs;
 
   // SỬA LỖI 1: Bỏ '?' (nullable), helper sẽ được khởi tạo ngay
@@ -52,6 +53,7 @@ class WorkspaceMainController extends GetxController
   var offset = 0;
   final memberFilterList = [].obs;
   final teamFilterList = [].obs;
+  final workSpaceFilterList = [].obs;
   final stageFilterList = [].obs;
   final ratingFilterList = [].obs;
   final tagFilterList = [].obs;
@@ -144,8 +146,8 @@ class WorkspaceMainController extends GetxController
     isLoading[selectedGroupIndex.value] = true;
     getHintCustomer();
     // fetchByStage();
-    fetchWorkspaceDetail();
-    // fetchCustomer(index: selectedGroupIndex.value);
+    // fetchWorkspaceDetail();
+    fetchCustomer(index: selectedGroupIndex.value);
     sc.addListener(() {
       if (sc.position.pixels >= sc.position.maxScrollExtent) {
         if (roomList.isNotEmpty && !isLoading[selectedGroupIndex.value]) {
@@ -339,11 +341,14 @@ class WorkspaceMainController extends GetxController
     for (var x in tagFilterList) {
       tagString += "&Tags=$x";
     }
+    var workSpaceString = <String>[];
+    for (var x in workSpaceFilterList) {
+      workSpaceString.add(x["id"]);
+    }
     fromDate = DateTime(fromDate.year, fromDate.month, fromDate.day, 0, 0, 0);
     toDate = DateTime(toDate.year, toDate.month, toDate.day, 23, 59, 59);
     await CustomerApi()
-        .getCustomerList(homeController.workGroupCardDataValue['id'],
-            offset ?? 0, limit ?? 10,
+        .getCustomerList2(workSpaceString, offset ?? 0, limit ?? 10,
             groupId: groupId,
             searchText: searchController.text,
             endDate: toDate,
@@ -373,13 +378,14 @@ class WorkspaceMainController extends GetxController
         errorAlert(title: 'Lỗi', desc: res['message']);
       }
     }).catchError((e) {
+      log(e.toString());
       checkToken(onDone: () {
         onRefresh();
       });
     });
   }
 
-  Future fetchByStagesssss() async {
+  Future fetchByStage() async {
     var stageString = "";
     for (var x in stageFilterList) {
       stageString += "&Stage=${x["id"]}";
@@ -696,4 +702,4 @@ class WorkspaceMainController extends GetxController
     // TODO: implement onNewReinvite
   }
 }
-// END: FILE WorkspaceMainController.dart
+// END: FILE CustomerHomeController.dart

@@ -76,13 +76,18 @@ const sendConvApi = '/api/v1/social/message/sendmessage';
 
 //customer
 const getCustomerListApi = '/api/v1/crm/contact/getlistpaging';
+
+const getCustomerListApiV2 = '/api/v2/customer/getlistpaging';
 const getDetailCustomerApi = '/api/v1/crm/contact/getdetail/';
 const createCustomerApi = '/api/v1/crm/contact/create';
 const importCustomerApi = '/api/v1/crm/contact/import';
 const updateCustomerApi = '/api/v1/crm/';
 const phoneCheckApi = "/api/v1/crm/contact/check";
+
+const getTagListApiV2 = "/api/v1/crm/category/tags/getpaging?limit=1000";
 const getTagListApi = "/api/v1/crm/category/tags/getlistpaging";
 const getSourceListApi = "/api/v1/crm/category/source/getlistpaging";
+const getSourceListApiV2 = "/api/v1/crm/category/utmsource/getlistpaging";
 //Journey
 const journeyApi = '/api/v1/crm/contact/';
 

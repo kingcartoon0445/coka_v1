@@ -4,9 +4,11 @@ import 'package:coka/components/auto_avatar.dart';
 import 'package:coka/constants.dart';
 import 'package:coka/screen/home/home_controller.dart';
 import 'package:coka/screen/home/pages/join_org_page.dart';
+import 'package:coka/screen/main/customer_controlller.dart';
 import 'package:coka/screen/main/main_controller.dart';
 import 'package:coka/screen/main/pages/detail_member.dart';
 import 'package:coka/screen/main/pages/support_chat.dart';
+import 'package:coka/screen/workspace/main_controller.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
@@ -90,6 +92,7 @@ class _NavigationDrawerSectionState extends State<NavigationDrawerSection> {
                                     homeController.navDrawerIndex.value]));
                             homeController.onRefresh();
                             widget.onCloseDrawer();
+                            Get.put(CustomerHomeController()).onRefresh();
                           });
                         },
                         child: Padding(

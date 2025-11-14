@@ -2,6 +2,7 @@ import 'package:badges/badges.dart' as badges;
 import 'package:coka/constants.dart';
 import 'package:coka/screen/home/home_controller.dart';
 import 'package:coka/screen/main/getx/notification_controller.dart';
+import 'package:coka/screen/main/pages/customers_home.dart';
 import 'package:coka/screen/main/pages/more.dart';
 import 'package:coka/screen/main/pages/notification.dart';
 import 'package:coka/screen/main/pages/support.dart';
@@ -20,7 +21,8 @@ final screens = [
   const HomePage(),
   const MultiChannel(),
   const NotificationPage(),
-  const SupportPage(),
+  // const SupportPage(),
+  const CustomersHomePage(),
   const MorePage()
 ];
 
@@ -125,19 +127,28 @@ class _MainPageState extends State<MainPage> {
                       size: 26, color: Color(0xFF5A48EF)),
                   label: 'Thông báo ');
             }),
+            // NavigationDestination(
+            //     icon: badges.Badge(
+            //       showBadge: homeController.badgeList.isNotEmpty,
+            //       position: badges.BadgePosition.topEnd(top: -3, end: -3),
+            //       child: Image.asset(
+            //         "assets/images/support_outline_icon.png",
+            //         width: 24,
+            //         height: 24,
+            //       ),
+            //     ),
+            //     selectedIcon: Image.asset("assets/images/support_icon.png",
+            //         width: 24, height: 24, color: const Color(0xFF5A48EF)),
+            //     label: 'Hỗ trợ'),
+
             NavigationDestination(
                 icon: badges.Badge(
-                  showBadge: homeController.badgeList.isNotEmpty,
-                  position: badges.BadgePosition.topEnd(top: -3, end: -3),
-                  child: Image.asset(
-                    "assets/images/support_outline_icon.png",
-                    width: 24,
-                    height: 24,
-                  ),
-                ),
-                selectedIcon: Image.asset("assets/images/support_icon.png",
-                    width: 24, height: 24, color: const Color(0xFF5A48EF)),
-                label: 'Hỗ trợ'),
+                    showBadge: homeController.badgeList.isNotEmpty,
+                    position: badges.BadgePosition.topEnd(top: -3, end: -3),
+                    child: const Icon(Icons.group_outlined, size: 26)),
+                selectedIcon: const Icon(Icons.group_rounded,
+                    size: 26, color: Color(0xFF5A48EF)),
+                label: 'Khách hàng'),
             NavigationDestination(
                 icon: badges.Badge(
                     showBadge: homeController.isUpdateAble.value,

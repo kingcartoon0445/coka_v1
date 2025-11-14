@@ -2,12 +2,22 @@ import 'dart:convert';
 import 'dart:developer';
 
 import 'package:dio/dio.dart';
+import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 
 import '../constants.dart';
 import 'api_url.dart';
 
 class CustomerApi {
-  final dio = Dio(BaseOptions(baseUrl: apiBaseUrl));
+  final dio = Dio(BaseOptions(baseUrl: apiBaseUrl))
+    ..interceptors.add(PrettyDioLogger(
+      requestHeader: true, // 显示请求头
+      requestBody: true, // 显示请求体
+      responseBody: true, // 显示响应体
+      responseHeader: false, // 不显示响应头（可选，减少日志量）
+      error: true, // 显示错误信息
+      compact: false, // 不压缩日志（显示完整格式）
+      maxWidth: 90, // 日志最大宽度
+    ));
 
   Future getCustomerList(
     workspaceId,
@@ -37,6 +47,76 @@ class CustomerApi {
             "organizationId": jsonDecode(await getOData())["id"],
             "Authorization": "Bearer $apiToken",
           }));
+      return response.data;
+    } on DioException catch (e) {
+      final response = e.response;
+      if (response != null) {
+        return response.data;
+      } else {
+        print(e.requestOptions);
+        print(e.message);
+      }
+    }
+  }
+
+  Future getCustomerList2(
+    List<String> workspaceList,
+    offset,
+    limit, {
+    String? filter,
+    String? groupId = "",
+    String? searchText = "",
+    String? stageList = "",
+    String? ratingList = "",
+    String? memberList = "",
+    String? teamList = "",
+    String? tagList = "",
+    DateTime? startDate,
+    DateTime? endDate,
+    String? categoryList = "",
+    String? sourceList = "",
+  }) async {
+    final apiToken = await getAccessToken();
+    try {
+      // 辅助函数：将逗号分隔的字符串转换为数组，如果为空则返回空数组
+      List<String> parseStringToList(String? str) {
+        if (str == null || str.isEmpty || str.trim().isEmpty) {
+          return [];
+        }
+        return str
+            .split(',')
+            .map((e) => e.trim())
+            .where((e) => e.isNotEmpty)
+            .toList();
+      }
+
+      // 构建请求体，按照用户提供的 JSON 格式
+      final requestBody = {
+        "searchText": searchText ?? "",
+        "stageGroupId": groupId ?? " ",
+        "offset": offset ?? 0,
+        "limit": limit ?? 20,
+        "startDate": startDate?.toIso8601String() ?? "",
+        "endDate": endDate?.toIso8601String() ?? "",
+        "categoryList": parseStringToList(categoryList),
+        "sourceList": parseStringToList(sourceList),
+        "rating": parseStringToList(ratingList),
+        "stage": parseStringToList(stageList),
+        "tags": parseStringToList(tagList),
+        "assignTo": parseStringToList(memberList),
+        "teamId": parseStringToList(teamList),
+        "workspaceIds": workspaceList,
+      };
+
+      final response = await dio.post(
+        getCustomerListApiV2,
+        data: requestBody,
+        options: Options(headers: {
+          "Content-Type": "application/json",
+          "organizationId": jsonDecode(await getOData())["id"],
+          "Authorization": "Bearer $apiToken",
+        }),
+      );
       return response.data;
     } on DioException catch (e) {
       final response = e.response;
@@ -306,6 +386,28 @@ class CustomerApi {
     }
   }
 
+  Future getTagListV2(workspaceId) async {
+    final apiToken = await getAccessToken();
+    try {
+      final response = await dio.get(getTagListApiV2,
+          options: Options(headers: {
+            "Content-Type": "application/json",
+            "organizationId": jsonDecode(await getOData())["id"],
+            "Authorization": "Bearer $apiToken",
+          }));
+
+      return response.data;
+    } on DioException catch (e) {
+      final response = e.response;
+      if (response != null) {
+        return response.data;
+      } else {
+        print(e.requestOptions);
+        print(e.message);
+      }
+    }
+  }
+
   Future getTagList(workspaceId) async {
     final apiToken = await getAccessToken();
     try {
@@ -313,6 +415,28 @@ class CustomerApi {
           options: Options(headers: {
             "Content-Type": "application/json",
             "workspaceId": workspaceId,
+            "organizationId": jsonDecode(await getOData())["id"],
+            "Authorization": "Bearer $apiToken",
+          }));
+
+      return response.data;
+    } on DioException catch (e) {
+      final response = e.response;
+      if (response != null) {
+        return response.data;
+      } else {
+        print(e.requestOptions);
+        print(e.message);
+      }
+    }
+  }
+
+  Future getSourceListV2(workspaceId) async {
+    final apiToken = await getAccessToken();
+    try {
+      final response = await dio.get(getSourceListApi,
+          options: Options(headers: {
+            "Content-Type": "application/json",
             "organizationId": jsonDecode(await getOData())["id"],
             "Authorization": "Bearer $apiToken",
           }));

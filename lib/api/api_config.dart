@@ -30,21 +30,6 @@ class ApiConfig {
         final Map<String, dynamic> headers =
             Map<String, dynamic>.from(options.headers);
 
-        // ignore: avoid_print
-        print('===== REQUEST ===============================================');
-        // ignore: avoid_print
-        print('METHOD: $method  URL: $uri');
-        // ignore: avoid_print
-        print('--- HEADERS --------------------------------------------------');
-        // ignore: avoid_print
-        print(_safeJson(headers));
-        // ignore: avoid_print
-        print('--- BODY -----------------------------------------------------');
-        // ignore: avoid_print
-        print(_safeJson(data));
-        // ignore: avoid_print
-        print('===== END REQUEST ===========================================');
-
         return handler.next(options);
       },
       onResponse: (response, handler) {
@@ -53,46 +38,10 @@ class ApiConfig {
         final Map<String, List<String>> headers = response.headers.map;
         final dynamic data = response.data;
 
-        // ignore: avoid_print
-        print('===== RESPONSE ==============================================');
-        // ignore: avoid_print
-        print('STATUS: $status  URL: $uri');
-        // ignore: avoid_print
-        print('--- HEADERS --------------------------------------------------');
-        // ignore: avoid_print
-        print(_safeJson(headers));
-        // ignore: avoid_print
-        print('--- BODY -----------------------------------------------------');
-        // ignore: avoid_print
-        print(_safeJson(data));
-        // ignore: avoid_print
-        print('===== END RESPONSE ==========================================');
-
         return handler.next(response);
       },
       onError: (err, handler) {
         // ignore: avoid_print
-        print('===== ERROR ==================================================');
-        // ignore: avoid_print
-        print('TYPE: ${err.type}  MESSAGE: ${err.message}');
-        if (err.response != null) {
-          final int? status = err.response?.statusCode;
-          final Uri uri = err.requestOptions.uri;
-          // ignore: avoid_print
-          print('STATUS: $status  URL: $uri');
-          // ignore: avoid_print
-          print(
-              '--- RESPONSE HEADERS ----------------------------------------');
-          // ignore: avoid_print
-          print(_safeJson(err.response?.headers.map));
-          // ignore: avoid_print
-          print(
-              '--- RESPONSE BODY -------------------------------------------');
-          // ignore: avoid_print
-          print(_safeJson(err.response?.data));
-        }
-        // ignore: avoid_print
-        print('===== END ERROR =============================================');
 
         return handler.next(err);
       },

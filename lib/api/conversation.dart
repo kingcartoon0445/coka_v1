@@ -12,13 +12,13 @@ class ConvApi {
   Future getConvUnread() async {
     final apiToken = await getAccessToken();
     try {
-      final response =
-          await dio.get('/api/v1/omni/conversation/getlistpageunread',
-              options: Options(headers: {
-                "Content-Type": "application/json",
-                "organizationId": jsonDecode(await getOData())["id"],
-                "Authorization": "Bearer $apiToken",
-              }));
+      final response = await dio.get(
+          '/api/v1/integration/omni/conversation/getlistpageunread',
+          options: Options(headers: {
+            "Content-Type": "application/json",
+            "organizationId": jsonDecode(await getOData())["id"],
+            "Authorization": "Bearer $apiToken",
+          }));
       return response.data;
     } on DioException catch (e) {
       final response = e.response;

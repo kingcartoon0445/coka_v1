@@ -10,6 +10,7 @@ import 'package:coka/components/update_alert.dart';
 import 'package:coka/constants.dart';
 import 'package:coka/main.dart';
 import 'package:coka/screen/main/getx/notification_controller.dart';
+import 'package:coka/screen/workspace/main_controller.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -166,7 +167,7 @@ class HomeController extends GetxController {
       fetchUserData(),
       fetchWorkspaceList(""),
       checkCallAble(),
-      checkUpdate(false)
+      checkUpdate(false),
     ]);
     if (workGroupCardDataValue != {} && (isInside ?? false)) {
       workGroupCardDataValue.value = workGroupCardDataList.firstWhere(
