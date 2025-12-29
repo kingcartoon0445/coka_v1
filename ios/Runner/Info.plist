@@ -61,7 +61,7 @@
 	<string>Need camera access for video call functions</string>
 	<key>NSContactsUsageDescription</key>
 	<string>Coka cần quyền truy cập vào danh bạ của bạn để tạo khách hàng.</string>
-	<key>NSMicrophoneUsageDescription</key>
+	<key> </key>
 	<string>Coka cần quyền truy cập vào micro để thực hiện cuộc gọi</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Coka cần quyền truy cập vào thư viện ảnh của bạn để đặt làm ảnh đại diện</string>
