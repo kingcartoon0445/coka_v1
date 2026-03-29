@@ -1,14 +1,12 @@
 import 'package:coka/components/auto_avatar.dart';
-import 'package:coka/api/conversation.dart';
 import 'package:coka/components/placeholders.dart';
 import 'package:coka/constants.dart';
-import 'package:coka/screen/home/components/drawer.dart';
 import 'package:coka/screen/home/home_controller.dart';
+import 'package:coka/screen/home/components/drawer.dart';
 import 'package:coka/screen/main/pages/notification.dart';
 import 'package:coka/screen/workspace/pages/chat_conv.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
 import 'messages_controller.dart';
 
 class MessagesPage extends GetView<MessagesController> {
@@ -204,16 +202,9 @@ class MessagesPage extends GetView<MessagesController> {
                               bool isRead = roomData["isRead"];
 
                               return ListTile(
-                                onTap: () async {
-                                  // Mark as read on server if currently unread, then navigate
-                                  if (roomData["isRead"] == false) {
-                                    final res =
-                                        await ConvApi().setRead(roomData["id"]);
-                                    if (isSuccessStatus(res["code"])) {
-                                      roomData["isRead"] = true;
-                                      controller.roomList.refresh();
-                                    }
-                                  }
+                                onTap: () {
+                                  roomData["isRead"] = true;
+                                  controller.roomList.refresh();
                                   Get.to(() => ChatConvPage(
                                         pageAvatar: null,
                                         pageName: null,

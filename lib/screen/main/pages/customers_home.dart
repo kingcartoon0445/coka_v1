@@ -7,7 +7,6 @@ import 'package:coka/constants.dart';
 import 'package:coka/screen/home/home_controller.dart';
 import 'package:coka/screen/main/customer_controlller.dart';
 import 'package:coka/screen/main/widget/customer_filter_bottomsheet.dart';
-import 'package:coka/screen/workspace/components/customer_filter_bottomsheet.dart';
 import 'package:coka/screen/workspace/components/customer_list.dart';
 import 'package:coka/screen/workspace/components/import_contact_layout.dart';
 import 'package:coka/screen/workspace/getx/multi_connect_binding.dart';

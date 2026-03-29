@@ -55,14 +55,9 @@ class NotificationController extends GetxController {
         if (isSuccessStatus(res["code"])) {
           offset += 15;
           notifyList.addAll(res["content"]);
-          // readCount.value = res["metadata"]["count"];
+          readCount.value = res["metadata"]["unRead"];
         } else {
           errorAlert(title: "Lỗi", desc: res["message"]);
-        }
-      });
-      await NotificationApi().getNotificationListUnread(offset).then(( res) {
-        if (isSuccessStatus(res["code"])) {
-          readCount.value = res["content"];
         }
       });
     } catch (e) {}

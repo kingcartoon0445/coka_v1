@@ -11,7 +11,6 @@ import 'package:coka/screen/workspace/getx/customer_controller.dart';
 import 'package:coka/screen/workspace/pages/customer.dart';
 import 'package:coka/screen/workspace/pages/edit_customer.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:get/get.dart';
 
 import '../main_controller.dart';
@@ -72,23 +71,47 @@ final homeController = Get.put(HomeController());
 Future assignToRequest(id, data, {bool? isInside = false}) async {
   showLoadingDialog(Get.context!);
 
-  await CustomerApi()
-      .assignToCustomer(homeController.workGroupCardDataValue["id"], id, data)
-      .then((res) {
-    Get.back();
-    if (!isSuccessStatus(res["code"])) {
-      return errorAlert(title: "Lỗi", desc: res["message"]);
-    }
-    Get.back();
-    if (isInside!) {
-      final cController = Get.put(CustomerController());
-      cController.fetchJourney();
-      cController.fetchDetailCustomer();
-    }
-    final wmController = Get.put(WorkspaceMainController());
-    wmController.onRefresh();
-    successAlert(title: "Thành công", desc: "Đã chuyển người phụ trách");
-  });
+  if (data["teamId"] != "") {
+    await CustomerApi()
+        .assignToCustomer(homeController.workGroupCardDataValue["id"], id, data)
+        .then((res) {
+      Get.back();
+      if (!isSuccessStatus(res["code"])) {
+        return errorAlert(title: "Lỗi", desc: res["message"]);
+      }
+      Get.back();
+      if (isInside!) {
+        final cController = Get.put(CustomerController());
+        cController.fetchJourney();
+        cController.fetchDetailCustomer();
+      }
+      final wmController = Get.put(WorkspaceMainController());
+      wmController.onRefresh();
+      successAlert(title: "Thành công", desc: "Đã chuyển người phụ trách");
+    });
+  } else {
+    data = {
+      "profileIds": [data["assignTo"]]
+    };
+    await CustomerApi()
+        .assignToCustomerV2(
+            homeController.workGroupCardDataValue["id"], id, data)
+        .then((res) {
+      Get.back();
+      if (!isSuccessStatus(res["code"])) {
+        return errorAlert(title: "Lỗi", desc: res["message"]);
+      }
+      Get.back();
+      if (isInside!) {
+        final cController = Get.put(CustomerController());
+        cController.fetchJourney();
+        cController.fetchDetailCustomer();
+      }
+      final wmController = Get.put(WorkspaceMainController());
+      wmController.onRefresh();
+      successAlert(title: "Thành công", desc: "Đã chuyển người phụ trách");
+    });
+  }
 }
 
 class _RoomItemState extends State<RoomItem> {
@@ -273,13 +296,8 @@ class _RoomItemState extends State<RoomItem> {
                                 widget.itemData['fullName'],
                                 style: TextStyle(
                                   color: const Color(0xFF201A18),
-                                  fontWeight: widget.itemData
-                                          .containsKey("stage")
-                                      ? FontWeight.w400
-                                      : widget.itemData.containsKey('stage') &&
-                                              widget.itemData['stage']
-                                                      ['name'] ==
-                                                  "Mới"
+                                  fontWeight:
+                                      widget.itemData['fullname'] == "Mới"
                                           ? FontWeight.w800
                                           : FontWeight.w400,
                                   fontSize: 15,
@@ -291,16 +309,12 @@ class _RoomItemState extends State<RoomItem> {
                             const SizedBox(
                               width: 5,
                             ),
-                            RatingBar.builder(
-                              initialRating: double.parse(
-                                  (widget.itemData["rating"] ?? 0).toString()),
-                              itemBuilder: (context, _) => const Icon(
-                                Icons.star,
-                                color: Color(0xFFF27B21),
-                              ),
+                            // Widget hiển thị sao tĩnh – không dùng RatingBar
+                            // để tránh hoàn toàn HorizontalMultiDragGestureRecognizer
+                            _StaticRatingBar(
+                              rating:
+                                  (widget.itemData["rating"] ?? 0).toDouble(),
                               itemSize: 8,
-                              onRatingUpdate: (value) {},
-                              ignoreGestures: true,
                             )
                           ],
                         ),
@@ -315,11 +329,8 @@ class _RoomItemState extends State<RoomItem> {
                             Icon(
                               Icons.circle,
                               size: 7,
-                              color: getTabBadgeColor(
-                                  widget.itemData.containsKey("stage")
-                                      ? widget.itemData['stage']["stageGroup"]
-                                          ['name']
-                                      : ""),
+                              color:
+                                  getTabBadgeColor(widget.itemData["fullname"]),
                             ),
                             const SizedBox(
                               width: 3,
@@ -328,20 +339,13 @@ class _RoomItemState extends State<RoomItem> {
                               constraints:
                                   BoxConstraints(maxWidth: Get.width - 205),
                               child: Text(
-                                widget.itemData.containsKey('stage')
-                                    ? widget.itemData['stage']['name']
-                                    : "",
+                                widget.itemData['fullName'],
                                 style: TextStyle(
                                   color: const Color(0xFF1F2329),
                                   fontWeight:
-                                      !widget.itemData.containsKey("stage")
-                                          ? FontWeight.w400
-                                          : widget.itemData['stage']['name'] ==
-                                                  "Mới"
-                                              ? FontWeight.w400
-                                              : FontWeight.w400 == "Mới"
-                                                  ? FontWeight.w800
-                                                  : FontWeight.w400,
+                                      widget.itemData['fullName'] == "Mới"
+                                          ? FontWeight.w800
+                                          : FontWeight.w400,
                                   fontSize: 12,
                                 ),
                                 maxLines: 1,
@@ -420,16 +424,14 @@ class _RoomItemState extends State<RoomItem> {
                                           widget.itemData["teamResponse"]
                                               ["name"],
                                       style: TextStyle(
-                                        color: widget.itemData['stage']
-                                                    ['name'] ==
-                                                "Mới"
-                                            ? Colors.black
-                                            : Colors.black.withOpacity(0.5),
-                                        fontWeight: widget.itemData['stage']
-                                                    ['name'] ==
-                                                "Mới"
-                                            ? FontWeight.w800
-                                            : FontWeight.w400,
+                                        color:
+                                            widget.itemData['fullName'] == "Mới"
+                                                ? Colors.black
+                                                : Colors.black.withOpacity(0.5),
+                                        fontWeight:
+                                            widget.itemData['fullName'] == "Mới"
+                                                ? FontWeight.w800
+                                                : FontWeight.w400,
                                         fontSize: 12,
                                       ),
                                     ),
@@ -447,11 +449,9 @@ class _RoomItemState extends State<RoomItem> {
                       Text(
                         snipTime,
                         style: TextStyle(
-                            color: !widget.itemData.containsKey('stage')
-                                ? const Color(0xFF171A1F).withOpacity(0.3)
-                                : widget.itemData['stage']['name'] == "Mới"
-                                    ? Colors.black
-                                    : const Color(0xFF171A1F).withOpacity(0.3),
+                            color: widget.itemData['fullName'] == "Mới"
+                                ? Colors.black
+                                : const Color(0xFF171A1F).withOpacity(0.3),
                             fontSize: 11),
                       ),
                       const SizedBox(
@@ -464,5 +464,34 @@ class _RoomItemState extends State<RoomItem> {
             ),
           );
         });
+  }
+}
+
+/// Widget hiển thị số sao tĩnh, không sử dụng gesture recognizer nào.
+/// Thay thế RatingBar.builder để tránh lỗi multidrag assertion.
+class _StaticRatingBar extends StatelessWidget {
+  final double rating;
+  final double itemSize;
+
+  const _StaticRatingBar({
+    required this.rating,
+    this.itemSize = 12,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: List.generate(5, (index) {
+        // Xác định trạng thái sao: đầy, nửa, rỗng
+        final filled = index < rating.floor();
+        final half = !filled && index < rating;
+        return Icon(
+          half ? Icons.star_half : (filled ? Icons.star : Icons.star_border),
+          color: const Color(0xFFF27B21),
+          size: itemSize,
+        );
+      }),
+    );
   }
 }

@@ -477,34 +477,109 @@ class _WorkspaceDashboardPageState extends State<WorkspaceDashboardPage> {
   }
 
   Widget buildSourceLegend(DashboardController controller) {
-    List<String> keys = controller.stageValueCustomerChartTotal.value.keys
-        .toList()
-        .cast<String>();
-    return Wrap(
+    return Row(
       children: [
-        for (int i = 0;
-            i < controller.stageValueCustomerChartTotal.value.length;
-            i++)
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8.0),
-            child: SizedBox(
-              width: (Get.width - 32) / 2 + 3,
-              child: Row(
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8.0),
+          child: SizedBox(
+            width: (Get.width - 32) / 2 + 3,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      Icons.circle,
+                      color: Color(0xFF92F7A8),
+                      size: 13,
+                    ),
+                    const SizedBox(
+                      width: 3,
+                    ),
+                    const Text(
+                      'Giao dịch',
+                      style: TextStyle(
+                          color: Color(0xB2000000),
+                          fontSize: 11,
+                          fontWeight: FontWeight.w500),
+                    ),
+                    const SizedBox(
+                      width: 4,
+                    ),
+                    Text(
+                      "${controller.stageValueCustomerChartTotal["transaction"]}",
+                      style: const TextStyle(
+                          fontSize: 11, fontWeight: FontWeight.w500),
+                    ),
+                    if (controller.isPercentShow.value)
+                      Text(
+                          "(${getRoundedPercentage(controller.stageValueCustomerChartTotal, "transaction")}%)",
+                          style: const TextStyle(
+                              fontSize: 11, color: Color(0xB2000000))),
+                  ],
+                ),
+                const SizedBox(
+                  height: 8,
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      Icons.circle,
+                      color: Color(0xFFFEBE99),
+                      size: 13,
+                    ),
+                    const SizedBox(
+                      width: 3,
+                    ),
+                    const Text(
+                      'Không tiềm năng',
+                      style: TextStyle(
+                          color: Color(0xB2000000),
+                          fontSize: 11,
+                          fontWeight: FontWeight.w500),
+                    ),
+                    const SizedBox(
+                      width: 4,
+                    ),
+                    Text(
+                        "${controller.stageValueCustomerChartTotal["unpotential"]}",
+                        style: const TextStyle(
+                            fontSize: 11, fontWeight: FontWeight.w500)),
+                    if (controller.isPercentShow.value)
+                      Text(
+                          "(${getRoundedPercentage(controller.stageValueCustomerChartTotal, "unpotential")}%)",
+                          style: const TextStyle(
+                              fontSize: 11, color: Color(0xB2000000))),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(
+                  const Icon(
                     Icons.circle,
-                    color: Color(int.parse(
-                        "0xFF${controller.stageValueCustomerChartTotal.value[keys[i]]['hex'].substring(1)}")),
+                    color: Color(0xFFA4F3FF),
                     size: 13,
                   ),
                   const SizedBox(
                     width: 3,
                   ),
-                  Text(
-                    keys[i],
-                    style: const TextStyle(
+                  const Text(
+                    'Tiềm năng',
+                    style: TextStyle(
                         color: Color(0xB2000000),
                         fontSize: 11,
                         fontWeight: FontWeight.w500),
@@ -513,19 +588,54 @@ class _WorkspaceDashboardPageState extends State<WorkspaceDashboardPage> {
                     width: 4,
                   ),
                   Text(
-                    "${controller.stageValueCustomerChartTotal.value[keys[i]]['count']}",
-                    style: const TextStyle(
-                        fontSize: 11, fontWeight: FontWeight.w500),
-                  ),
+                      "${controller.stageValueCustomerChartTotal["potential"]}",
+                      style: const TextStyle(
+                          fontSize: 11, fontWeight: FontWeight.w500)),
                   if (controller.isPercentShow.value)
                     Text(
-                        "(${getRoundedPercentage(controller.stageValueCustomerChartTotal, "count")}%)",
+                        "(${getRoundedPercentage(controller.stageValueCustomerChartTotal, "potential")}%)",
                         style: const TextStyle(
                             fontSize: 11, color: Color(0xB2000000))),
                 ],
               ),
-            ),
+              const SizedBox(
+                height: 8,
+              ),
+              Row(
+                children: [
+                  const Icon(
+                    Icons.circle,
+                    color: Color(0xFF9F87FF),
+                    size: 13,
+                  ),
+                  const SizedBox(
+                    width: 3,
+                  ),
+                  const Text(
+                    'Không xác định',
+                    style: TextStyle(
+                        color: Color(0xB2000000),
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500),
+                  ),
+                  const SizedBox(
+                    width: 4,
+                  ),
+                  Text(
+                      "${controller.stageValueCustomerChartTotal["undefined"]}",
+                      style: const TextStyle(
+                          fontSize: 11, fontWeight: FontWeight.w500)),
+                  if (controller.isPercentShow.value)
+                    Text(
+                      "(${getRoundedPercentage(controller.stageValueCustomerChartTotal, "undefined")}%)",
+                      style: const TextStyle(
+                          fontSize: 11, color: Color(0xB2000000)),
+                    ),
+                ],
+              )
+            ],
           ),
+        )
       ],
     );
   }
@@ -1231,8 +1341,8 @@ Widget buildDatePickerBtn(
     style: MenuStyle(
         backgroundColor: const WidgetStatePropertyAll(Colors.white),
         maximumSize: WidgetStatePropertyAll(Size(Get.width - 32, 350)),
-        padding:
-            const WidgetStatePropertyAll(EdgeInsets.symmetric(horizontal: 30))),
+        padding: const WidgetStatePropertyAll(
+            EdgeInsets.symmetric(horizontal: 30))),
     menuChildren: [
       MenuItemButton(
         child: const Text("Hôm nay",

@@ -6,12 +6,10 @@ import 'package:coka/components/auto_avatar.dart';
 import 'package:coka/components/awesome_alert.dart';
 import 'package:coka/components/placeholders.dart';
 import 'package:coka/constants.dart';
-import 'package:coka/screen/appbar_widget.dart';
 import 'package:coka/screen/home/home_controller.dart';
 import 'package:coka/screen/workspace/pages/chat_conv.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:get/get.dart';
 
 class ChatRoomPage extends StatefulWidget {
@@ -71,10 +69,11 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
     });
     getOData().then((value) {
       final oId = jsonDecode(value)["id"];
-
+      print(oId);
       DatabaseReference syncRef =
           FirebaseDatabase.instance.ref('root/OrganizationId: $oId');
       onChangedListener = syncRef.onChildChanged.listen((event) async {
+        print("hasChanged");
         DataSnapshot snapshot = event.snapshot;
         Map data = ((snapshot.value ?? {}) as Map).values.first;
         try {
@@ -169,7 +168,8 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16),
             child: SearchBar(
-              backgroundColor: const WidgetStatePropertyAll(Color(0xFFF2F3F5)),
+              backgroundColor:
+                  const WidgetStatePropertyAll(Color(0xFFF2F3F5)),
               hintText: "Tìm kiếm",
               controller: searchText,
               onChanged: (value) {
@@ -228,40 +228,15 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
                                   final title = roomData["personName"];
                                   final subtitle = roomData["snippet"];
                                   final avatar = roomData["personAvatar"];
-
                                   final updatedTime = diffFunc(
                                       DateTime.fromMillisecondsSinceEpoch(
                                           roomData["updatedTime"]));
-                                  String? assignTo;
-                                  String? assignName;
-                                  String? assignAvatar;
                                   bool isRead = roomData["isRead"];
-                                  if (roomData["assignTo"] != null) {
-                                    assignTo = roomData["assignTo"];
-                                    assignName = roomData["assignName"];
-                                    assignAvatar = roomData["assignAvatar"];
-                                  }
                                   return ListTile(
-                                      onTap: () async {
-                                        // Mark as read on server if currently unread, then navigate
-                                        bool isRead = roomData["isRead"];
-                                        if (isRead == false) {
-                                          String type = roomData["type"];
-                                          if (type != "COMMENT") {
-                                            final res = await ConvApi()
-                                                .setRead(roomData["id"]);
-                                            if (res != "") {
-                                              if (isSuccessStatus(
-                                                  res["code"])) {
-                                                setState(
-                                                  () {
-                                                    roomData["isRead"] = true;
-                                                  },
-                                                );
-                                              }
-                                            }
-                                          }
-                                        }
+                                      onTap: () {
+                                        setState(() {
+                                          roomData["isRead"] = true;
+                                        });
                                         Get.to(() => ChatConvPage(
                                               pageAvatar: widget.pageAvatar,
                                               pageName: widget.pageName,
@@ -270,9 +245,6 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
                                               convId: roomData["id"],
                                               personName: title,
                                               personId: roomData["personId"],
-                                              assignId: assignTo,
-                                              assignName: assignName,
-                                              assignAvatar: assignAvatar,
                                             ));
                                       },
                                       title: Text(title,
@@ -311,12 +283,15 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
                                           )
                                         ],
                                       ),
-                                      leading: AppAvatar(
-                                        imageUrl: avatar,
-                                        size: 44,
-                                        shape: AvatarShape.circle,
-                                        fallbackText: title,
-                                      ));
+                                      leading: avatar == null
+                                          ? createCircleAvatar(
+                                              name: title, radius: 22)
+                                          : CircleAvatar(
+                                              backgroundImage:
+                                                  getAvatarProvider(
+                                                      avatar ?? defaultAvatar),
+                                              radius: 22,
+                                            ));
                                 },
                               ),
                               if (isRoomLoadMore)

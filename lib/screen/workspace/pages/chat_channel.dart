@@ -39,6 +39,7 @@ class ChatChannelPage extends StatefulWidget {
 
 class _ChatChannelPageState extends State<ChatChannelPage> {
   final homeController = Get.put(HomeController());
+  final chatChannelController = Get.put(ChatChannelController());
 
   @override
   Widget build(BuildContext context) {

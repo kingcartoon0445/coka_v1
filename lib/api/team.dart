@@ -4,7 +4,6 @@ import 'package:coka/api/api_url.dart';
 import 'package:coka/constants.dart';
 import 'package:dio/dio.dart';
 
-
 class TeamApi {
   final dio = Dio(BaseOptions(baseUrl: apiBaseUrl));
 
@@ -194,7 +193,7 @@ class TeamApi {
     final apiToken = await getAccessToken();
     try {
       final response = await dio.get(
-          "$teamApi/user/getlistpaging?SearchText=$searchText&Fields=FULLNAME&Limit=200",
+          "$organizationApi/member/getlistpaging?SearchText=$searchText&Fields=FULLNAME&Limit=200",
           options: Options(headers: {
             "Content-Type": "application/json",
             "workspaceId": workspaceId,

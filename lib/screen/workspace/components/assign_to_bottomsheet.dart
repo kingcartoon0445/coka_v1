@@ -167,8 +167,8 @@ class _AssignToBottomSheetState extends State<AssignToBottomSheet> {
                           padding: const EdgeInsets.all(10.0),
                           child: SearchBar(
                             leading: const Icon(Icons.search),
-                            backgroundColor: const WidgetStatePropertyAll(
-                                Color(0xFFF8F8F8)),
+                            backgroundColor:
+                                const WidgetStatePropertyAll(Color(0xFFF8F8F8)),
                             hintText: "Nhập tên thành viên",
                             controller: searchMemberController,
                             onChanged: (value) {
@@ -181,18 +181,17 @@ class _AssignToBottomSheetState extends State<AssignToBottomSheet> {
                                 ? const ListPlaceholder(length: 10)
                                 : ListView.builder(
                                     itemBuilder: (context, index) {
-                                      final avatar = memberList[index]
-                                          ["profile"]["avatar"];
-                                      final fullName = memberList[index]
-                                          ["profile"]["fullName"];
+                                      final avatar =
+                                          memberList[index]["avatar"];
+                                      final fullName =
+                                          memberList[index]["fullName"];
                                       final subtitle =
-                                          memberList[index]["team"]["name"];
+                                          memberList[index]["fullName"];
                                       return buildListTile(
                                           avatar, fullName, subtitle,
                                           onTap: () {
                                         widget.onSelected({
-                                          "teamId": memberList[index]["team"]
-                                              ["id"],
+                                          "teamId": "",
                                           "assignTo": memberList[index]
                                               ["profileId"]
                                         });
@@ -210,8 +209,8 @@ class _AssignToBottomSheetState extends State<AssignToBottomSheet> {
                           padding: const EdgeInsets.all(10.0),
                           child: SearchBar(
                             leading: const Icon(Icons.search),
-                            backgroundColor: const WidgetStatePropertyAll(
-                                Color(0xFFF8F8F8)),
+                            backgroundColor:
+                                const WidgetStatePropertyAll(Color(0xFFF8F8F8)),
                             hintText: "Nhập tên đội",
                             controller: searchTeamController,
                             onChanged: (value) {
@@ -287,7 +286,7 @@ class _AssignToBottomSheetState extends State<AssignToBottomSheet> {
               child: Icon(Icons.group_outlined, size: 16),
             ),
           Text(
-            subtitle,
+            subtitle ?? "",
             style:
                 TextStyle(color: Colors.black.withOpacity(0.7), fontSize: 13),
           ),

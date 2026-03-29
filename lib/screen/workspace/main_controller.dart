@@ -1,8 +1,8 @@
-// BEGIN: FILE WorkspaceMainController.dart
 import 'dart:async';
 import 'dart:convert';
 
 import 'package:coka/api/customer.dart';
+import 'package:coka/api/dashboard.dart';
 import 'package:coka/api/workspace.dart';
 import 'package:coka/components/search_anchor.dart';
 import 'package:coka/main.dart';
@@ -22,9 +22,9 @@ import 'package:sip_ua/sip_ua.dart';
 import '../../components/awesome_alert.dart';
 import '../../components/chip_input.dart';
 import '../../constants.dart';
-import '../../utils/crypto_helper.dart';
 import 'getx/customer_controller.dart';
 import 'pages/callscreen.dart';
+import '../../utils/crypto_helper.dart';
 
 class WorkspaceMainController extends GetxController
     with GetSingleTickerProviderStateMixin
@@ -32,12 +32,7 @@ class WorkspaceMainController extends GetxController
   final homeController = Get.put(HomeController());
   final dashboardController = Get.put(DashboardController());
   final history = [0].obs;
-
-  // SỬA LỖI 1: Bỏ '?' (nullable), helper sẽ được khởi tạo ngay
-  SIPUAHelper helper = SIPUAHelper();
-
-  // SỬA LỖI 2: Thêm biến .obs để theo dõi trạng thái SIP
-  final isSipRegistered = false.obs;
+  SIPUAHelper? helper = SIPUAHelper();
 
   ScrollController sc = ScrollController();
   late TabController tabController;
@@ -109,33 +104,72 @@ class WorkspaceMainController extends GetxController
 
   final stageCountObject = {}.obs;
 
+  Future loadStageList() async {
+    final workspaceId = homeController.workGroupCardDataValue["id"];
+    try {
+      final res = await CustomerApi().getStageList(workspaceId);
+      if (res != null && isSuccessStatus(res["code"])) {
+        List contentList = res["content"] ?? [];
+        Map<String, dynamic> newStageObj = {};
+        
+        for (var item in contentList) {
+          String? groupId = item["stageGroupId"];
+          if (groupId == null) continue;
+          
+          if (!newStageObj.containsKey(groupId)) {
+            newStageObj[groupId] = {
+              "name": item["stageGroup"]?["name"] ?? "Không xác định",
+              "data": []
+            };
+          }
+          
+          newStageObj[groupId]["data"].add({
+            "id": item["stageId"],
+            "name": item["name"]
+          });
+        }
+        
+        // Cập nhật stageObject toàn cục
+        if (newStageObj.isNotEmpty) {
+          stageObject.clear();
+          stageObject.addAll(newStageObj);
+        }
+        
+        // Cập nhật lại các biến observable phụ thuộc
+        stageValueCustomerChartObject.value = Map.from(jsonDecode(jsonEncode(stageObject)));
+        if (Get.isRegistered<DashboardController>()) {
+          final dashCtrl = Get.find<DashboardController>();
+          dashCtrl.stageValueCustomerChartObject.value = Map.from(jsonDecode(jsonEncode(stageObject)));
+          dashCtrl.fetchByStage();
+        }
+      }
+    } catch (e) {
+      print("Error loading stage list: $e");
+    }
+  }
+
   @override
   void onInit() {
-    // SỬA LỖI 3: Dọn dẹp onInit, bỏ Timer, chạy khởi tạo trực tiếp
-    super.onInit(); // Luôn gọi super() ở đầu
+    // TODO: implement onInit
+    super.onInit();
     SystemChrome.setSystemUIOverlayStyle(
       const SystemUiOverlayStyle(
         statusBarColor: Colors.white,
       ),
     );
     dateString.value = "Toàn bộ thời gian";
-
-    // *** BỎ TIMER, KHỞI TẠO TRỰC TIẾP ***
-    helper.addSipUaHelperListener(this); // Dùng 'helper.' (không có '!')
-
-    // Giải mã password trước khi sử dụng
-    print(homeController.userData);
-    if (homeController.callData.containsKey("passwordHash")) {
-      final decryptedPassword = CryptoHelper.decrypt(
-          homeController.callData["passwordHash"],
-          homeController.userData["id"]);
-
-      // Thêm print để debug mật khẩu
-      print("!!! MẬT KHẨU ĐÃ GIẢI MÃ LÀ: $decryptedPassword");
-
-      callSettingInit(homeController.callData["name"], decryptedPassword);
-    }
-    // **********************************
+    Timer(
+      Duration.zero,
+      () {
+        helper!.addSipUaHelperListener(this);
+        print(homeController.userData);
+        final decryptedPassword = CryptoHelper.decrypt(
+            homeController.callData["passwordHash"].toString(),
+            homeController.userData["id"]);
+        print({"decryptedPassword": decryptedPassword});
+        callSettingInit(homeController.callData["name"], decryptedPassword);
+      },
+    );
 
     final defaultIndex = Get.arguments?["defaultIndex"];
     if (defaultIndex != null) {
@@ -143,9 +177,14 @@ class WorkspaceMainController extends GetxController
     }
     isLoading[selectedGroupIndex.value] = true;
     getHintCustomer();
-    // fetchByStage();
     fetchWorkspaceDetail();
-    // fetchCustomer(index: selectedGroupIndex.value);
+    
+    // Đợi fetch stages xong mới gọi thống kê và load data customer
+    loadStageList().then((_) {
+      fetchByStage();
+      fetchCustomer(index: selectedGroupIndex.value);
+    });
+
     sc.addListener(() {
       if (sc.position.pixels >= sc.position.maxScrollExtent) {
         if (roomList.isNotEmpty && !isLoading[selectedGroupIndex.value]) {
@@ -165,15 +204,9 @@ class WorkspaceMainController extends GetxController
 
   @override
   void onClose() {
-    // SỬA LỖI 4: Dọn dẹp an toàn, gọi super.onClose() ở CUỐI CÙNG
-
-    // Dọn dẹp của bạn TRƯỚC
-    helper.removeSipUaHelperListener(this); // Dùng 'helper.'
-    _debounce?.cancel();
-    timer?.cancel();
-
-    // Gọi super.onClose() CUỐI CÙNG
+    // TODO: implement onClose
     super.onClose();
+    helper!.removeSipUaHelperListener(this);
   }
 
   void callSettingInit(name, pass) {
@@ -187,34 +220,16 @@ class WorkspaceMainController extends GetxController
     settings.displayName = name;
     settings.userAgent = 'Dart SIP Client v1.0.0';
     settings.dtmfMode = DtmfMode.RFC2833;
-    settings.transportType = TransportType.WS;
-
-    // SỬA LỖI 5: Dùng 'helper.' (không có '!')
-    helper.start(settings);
+    helper!.start(settings);
   }
 
   Future<void> handleCall(phone) async {
-    // SỬA LỖI 6: Kiểm tra biến 'isSipRegistered.value'
-    if (!isSipRegistered.value) {
-      print('SIP HELPER LỖI: Chưa đăng ký (isSipRegistered = false).');
-
-      Get.snackbar(
-        'Chưa sẵn sàng',
-        'Đang kết nối tới máy chủ, vui lòng thử lại sau giây lát.',
-        snackPosition: SnackPosition.BOTTOM,
-      );
-
-      // Dừng hàm, không chạy code bên dưới
-      return;
-    }
-    // ************************************************
-
-    // Code cũ của bạn (bây giờ đã an toàn để chạy)
     Map<Permission, PermissionStatus> statuses = await [
       Permission.microphone,
     ].request();
     if (statuses[Permission.microphone] != PermissionStatus.granted) {
       openAppSettings();
+
       return;
     }
 
@@ -225,10 +240,7 @@ class WorkspaceMainController extends GetxController
     rtc.MediaStream mediaStream;
     mediaStream =
         await rtc.navigator.mediaDevices.getUserMedia(mediaConstraints);
-
-    // Lệnh gọi này bây giờ chỉ chạy khi helper đã sẵn sàng
-    // SỬA LỖI 5: Dùng 'helper.' (không có '!')
-    helper.call(
+    helper!.call(
       "+$phone",
       // voiceonly: true,
       mediaStream: mediaStream,
@@ -251,7 +263,7 @@ class WorkspaceMainController extends GetxController
       selectedGroupIndex.value = tabController.index;
       roomList[selectedGroupIndex.value].clear();
       isLoading[selectedGroupIndex.value] = true;
-      // fetchByStage();
+      fetchByStage();
       fetchCustomer(index: tabController.index);
     }
   }
@@ -261,10 +273,8 @@ class WorkspaceMainController extends GetxController
     update();
     offset = 0;
     isLoading[selectedGroupIndex.value] = true;
-    await Future.wait([
-      // fetchByStage(),
-      fetchCustomer(index: selectedGroupIndex.value)
-    ]);
+    await Future.wait(
+        [fetchByStage(), fetchCustomer(index: selectedGroupIndex.value)]);
   }
 
   Future<bool> onWillPop() async {
@@ -379,7 +389,7 @@ class WorkspaceMainController extends GetxController
     });
   }
 
-  Future fetchByStagesssss() async {
+  Future fetchByStage() async {
     var stageString = "";
     for (var x in stageFilterList) {
       stageString += "&Stage=${x["id"]}";
@@ -664,26 +674,7 @@ class WorkspaceMainController extends GetxController
 
   @override
   void registrationStateChanged(RegistrationState state) {
-    // SỬA LỖI 7: Triển khai (implement) hàm listener này
-    print('### TRẠNG THÁI SIP THAY ĐỔI: ${state.state} ###');
-
-    if (state.state == RegistrationStateEnum.REGISTERED) {
-      isSipRegistered.value = true;
-      print("### SIP ĐÃ SẴN SÀNG ĐỂ GỌI (REGISTERED) ###");
-    } else {
-      // Bị lỗi, hoặc chưa đăng ký
-      isSipRegistered.value = false;
-      if (state.state == RegistrationStateEnum.REGISTRATION_FAILED) {
-        print("### SIP ĐĂNG KÝ THẤT BẠI: ${state.cause} ###");
-        Get.snackbar(
-          'Lỗi kết nối cuộc gọi',
-          'Đăng ký SIP thất bại: ${state.cause}',
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
-        );
-      }
-    }
+    // TODO: implement registrationStateChanged
   }
 
   @override
@@ -696,4 +687,3 @@ class WorkspaceMainController extends GetxController
     // TODO: implement onNewReinvite
   }
 }
-// END: FILE WorkspaceMainController.dart

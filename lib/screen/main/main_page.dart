@@ -21,8 +21,8 @@ final screens = [
   const HomePage(),
   const MultiChannel(),
   const NotificationPage(),
-  // const SupportPage(),
-  const CustomersHomePage(),
+  const SupportPage(),
+  // const CustomersHomePage(),
   const MorePage()
 ];
 
@@ -145,10 +145,10 @@ class _MainPageState extends State<MainPage> {
                 icon: badges.Badge(
                     showBadge: homeController.badgeList.isNotEmpty,
                     position: badges.BadgePosition.topEnd(top: -3, end: -3),
-                    child: const Icon(Icons.group_outlined, size: 26)),
-                selectedIcon: const Icon(Icons.group_rounded,
-                    size: 26, color: Color(0xFF5A48EF)),
-                label: 'Khách hàng'),
+                    child: const Icon(Icons.support_agent_outlined, size: 26)),
+                selectedIcon: Image.asset("assets/images/support_icon.png",
+                    width: 24, height: 24, color: const Color(0xFF5A48EF)),
+                label: 'Hỗ trợ'),
             NavigationDestination(
                 icon: badges.Badge(
                     showBadge: homeController.isUpdateAble.value,

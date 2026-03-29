@@ -221,6 +221,30 @@ class CustomerApi {
     }
   }
 
+  Future assignToCustomerV2(workspaceId, customerId, data) async {
+    final apiToken = await getAccessToken();
+    try {
+      final response =
+          await dio.patch("$updateCustomerApiV2$customerId/assigntov2",
+              data: data,
+              options: Options(headers: {
+                "Content-Type": "application/json",
+                "workspaceId": workspaceId,
+                "organizationId": jsonDecode(await getOData())["id"],
+                "Authorization": "Bearer $apiToken",
+              }));
+      return response.data;
+    } on DioException catch (e) {
+      final response = e.response;
+      if (response != null) {
+        return response.data;
+      } else {
+        print(e.requestOptions);
+        print(e.message);
+      }
+    }
+  }
+
   Future updateAvatarCustomer(workspaceId, customerId, data) async {
     final apiToken = await getAccessToken();
     try {
@@ -412,6 +436,29 @@ class CustomerApi {
     final apiToken = await getAccessToken();
     try {
       final response = await dio.get(getTagListApi,
+          options: Options(headers: {
+            "Content-Type": "application/json",
+            "workspaceId": workspaceId,
+            "organizationId": jsonDecode(await getOData())["id"],
+            "Authorization": "Bearer $apiToken",
+          }));
+
+      return response.data;
+    } on DioException catch (e) {
+      final response = e.response;
+      if (response != null) {
+        return response.data;
+      } else {
+        print(e.requestOptions);
+        print(e.message);
+      }
+    }
+  }
+
+  Future getStageList(workspaceId) async {
+    final apiToken = await getAccessToken();
+    try {
+      final response = await dio.get(getStageListApi,
           options: Options(headers: {
             "Content-Type": "application/json",
             "workspaceId": workspaceId,

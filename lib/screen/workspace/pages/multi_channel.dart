@@ -1,6 +1,8 @@
 import 'package:coka/components/elevated_btn.dart';
 import 'package:coka/screen/home/home_controller.dart';
+import 'package:coka/screen/main/pages/customers_home.dart';
 import 'package:coka/screen/workspace/pages/ai_chatbot.dart';
+import 'package:coka/screen/workspace/pages/chat_channel.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -22,10 +24,11 @@ class _MultiChannelState extends State<MultiChannel> {
   @override
   Widget build(BuildContext context) {
     final dataMenuObject = {
-      "chat": {
-        "name": "Chat",
+      "chanelChat": {
+        "name": "Chanel Chat",
         "onClick": () {
-          Get.toNamed("/chat");
+          Navigator.push(context,
+              MaterialPageRoute(builder: (context) => const ChatChannelPage()));
         },
         "icon": Image.asset(
           "assets/images/messenger_icon.png",

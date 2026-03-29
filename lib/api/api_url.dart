@@ -1,4 +1,4 @@
-var apiBaseUrl = 'https://dev.coka.ai/';
+var apiBaseUrl = 'https://api.coka.ai/';
 const apiAutomationUrl = 'https://automation.coka.ai';
 const apiCallCenterUrl = 'https://callcenter.coka.ai';
 
@@ -82,8 +82,10 @@ const getDetailCustomerApi = '/api/v1/crm/contact/getdetail/';
 const createCustomerApi = '/api/v1/crm/contact/create';
 const importCustomerApi = '/api/v1/crm/contact/import';
 const updateCustomerApi = '/api/v1/crm/';
+const updateCustomerApiV2 = '/api/v1/crm/contact/';
 const phoneCheckApi = "/api/v1/crm/contact/check";
 
+const getStageListApi = "/api/v1/crm/category/stage/getlistpaging?limit=1000";
 const getTagListApiV2 = "/api/v1/crm/category/tags/getpaging?limit=1000";
 const getTagListApi = "/api/v1/crm/category/tags/getlistpaging";
 const getSourceListApi = "/api/v1/crm/category/source/getlistpaging";
@@ -114,6 +116,7 @@ const deleteOrgMemberApi = "/api/v1/organization/member/";
 
 //CRM-> Team
 const teamApi = "/api/v1/crm/team";
+const organizationApi = "/api/v1/organization";
 
 //Dashboard
 const getDashboardSummaryApi = "/api/v1/workspace/report/summary";

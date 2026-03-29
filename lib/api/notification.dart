@@ -27,35 +27,15 @@ class NotificationApi {
     }
   }
 
-  Future getNotificationListUnread(offset) async {
+  Future updateRead(id) async {
     final apiToken = await getAccessToken();
     try {
-      final response = await dio.get("$getNotificationListUnreadApi",
+      final response = await dio.put(
+          "$updateNotificationReadApi?Limit=50&$sortDesc&notifyId=$id&Status=0",
           options: Options(headers: {
             "Content-Type": "application/json",
             "Authorization": "Bearer $apiToken",
           }));
-      return response.data;
-    } on DioException catch (e) {
-      final response = e.response;
-      if (response != null) {
-        return response.data;
-      } else {
-        print(e.requestOptions);
-        print(e.message);
-      }
-    }
-  }
-
-  Future updateRead(String id) async {
-    final apiToken = await getAccessToken();
-    try {
-      final response =
-          await dio.patch(updateNotificationReadApi + "?notifyId=$id",
-              options: Options(headers: {
-                "Content-Type": "application/json",
-                "Authorization": "Bearer $apiToken",
-              }));
       return response.data;
     } on DioException catch (e) {
       final response = e.response;

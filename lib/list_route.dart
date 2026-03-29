@@ -18,10 +18,8 @@ import 'package:coka/screen/main/main_page.dart';
 import 'package:coka/screen/messages/messages_binding.dart';
 import 'package:coka/screen/messages/messages_page.dart';
 import 'package:coka/screen/splash_screen.dart';
-import 'package:coka/screen/workspace/getx/chat_channel_binding.dart';
 import 'package:coka/screen/workspace/main_binding.dart';
 import 'package:coka/screen/workspace/main_page.dart';
-import 'package:coka/screen/workspace/pages/chat_channel.dart';
 import 'package:get/get.dart';
 
 List<GetPage> listRoute = [
@@ -49,18 +47,26 @@ List<GetPage> listRoute = [
       name: '/crmConversation',
       page: () => const CrmConversationPage(),
       binding: CrmConversationBinding()),
-  GetPage(name: "/messages", page: () => const MessagesPage(), binding: MessagesBinding()),
+  GetPage(
+      name: "/messages",
+      page: () => const MessagesPage(),
+      binding: MessagesBinding()),
   GetPage(
       name: '/contactDetail',
       page: () => const ContactDetailPage(),
       binding: ContactDetailBinding()),
-  GetPage(name: '/crmCustomer', page: () => const CrmCustomerPage(), binding: CrmCustomerBinding()),
+  GetPage(
+      name: '/crmCustomer',
+      page: () => const CrmCustomerPage(),
+      binding: CrmCustomerBinding()),
   GetPage(
       name: '/crmOmnichannel',
       page: () => const CrmOmnichannelPage(),
       binding: CrmOmnichannelBinding()),
-  GetPage(name: '/crmAuto', page: () => const CrmAutoPage(), binding: CrmAutoBinding()),
-  GetPage(name: '/chat', page: () => const ChatChannelPage(), binding: ChatChannelBinding()),
+  GetPage(
+      name: '/crmAuto',
+      page: () => const CrmAutoPage(),
+      binding: CrmAutoBinding()),
   GetPage(name: '/main', page: () => const MainPage(), binding: MainBinding()),
   GetPage(
       name: '/workspaceMain',

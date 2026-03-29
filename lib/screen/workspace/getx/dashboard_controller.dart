@@ -113,9 +113,7 @@ class DashboardController extends GetxController
     fetchSummary();
     fetchOverTime();
     fetchByStage();
-    if (isAdminOrOwner(homeController)) {
-      fetchByUser();
-    }
+    fetchByUser();
     fetchByRating();
 
     fetchBySource(firstLoad: true);
@@ -160,18 +158,29 @@ class DashboardController extends GetxController
     isChartByUserLoading.value = true;
     update();
 
+    print("=== [DEBUG] Start fetchByUser ===");
+
     await DashboardApi()
         .getStatisticByUser(
             homeController.workGroupCardDataValue["id"], fromDate, toDate)
         .then((res) {
       isChartByUserLoading.value = false;
-
+      print("=== [DEBUG] fetchByUser RESPONSE: $res ===");
+      if (res == null) {
+        errorAlert(
+            title: "Lỗi", desc: "Không nhận được dữ liệu phản hồi từ server");
+        return;
+      }
       if (isSuccessStatus(res["code"])) {
         statisticsUserData.clear();
-        statisticsUserData.value = res["content"];
+        statisticsUserData.value = res["content"] ?? [];
       } else {
-        errorAlert(title: "Lỗi", desc: res["message"]);
+        errorAlert(title: "Lỗi", desc: res["message"] ?? "Có lỗi xảy ra");
       }
+    }).catchError((e) {
+      isChartByUserLoading.value = false;
+      print("=== [DEBUG] fetchByUser ERROR: $e ===");
+      // errorAlert(title: "Lỗi nội bộ", desc: e.toString());
     });
     update();
   }
@@ -180,22 +189,21 @@ class DashboardController extends GetxController
     fromDate = DateTime(fromDate.year, fromDate.month, fromDate.day, 0, 0, 0);
     toDate = DateTime(toDate.year, toDate.month, toDate.day, 23, 59, 59);
     isChartByStageLoading.value = true;
-    // update();
-    // await DashboardApi()
-    //     .getByStage(
-    //         homeController.workGroupCardDataValue["id"], fromDate, toDate)
-    //     .then((res) {
-    //   isChartByStageLoading.value = false;
+    update();
+    await DashboardApi()
+        .getByStage(
+            homeController.workGroupCardDataValue["id"], fromDate, toDate)
+        .then((res) {
+      isChartByStageLoading.value = false;
 
-    //   if (isSuccessStatus(res["code"])) {
-    //     stageCountObject.clear();
-    //     List listData = res["content"];
-    //     countGroupStage(listData);
-    //   } else {
-    //     errorAlert(title: "Lỗi", desc: res["message"]);
-    //   }
-    // });
-
+      if (isSuccessStatus(res["code"])) {
+        stageCountObject.clear();
+        List listData = res["content"];
+        countGroupStage(listData);
+      } else {
+        errorAlert(title: "Lỗi", desc: res["message"]);
+      }
+    });
     update();
   }
 

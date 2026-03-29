@@ -83,7 +83,7 @@ class _MyCallScreenWidget extends State<CallScreenWidget>
 
   String? get remoteIdentity => call!.remote_identity;
 
-  String get direction => call!.direction;
+  // String get direction => call!.direction;
 
   Call? get call => widget._call;
 
@@ -214,7 +214,7 @@ class _MyCallScreenWidget extends State<CallScreenWidget>
         _localRenderer!.srcObject = stream;
       }
       if (!kIsWeb && !WebRTC.platformIsDesktop) {
-        event.stream?.getAudioTracks().first.enableSpeakerphone(_speakerOn);
+        event.stream?.getAudioTracks().first.enableSpeakerphone(false);
       }
       _localStream = stream;
     }
@@ -250,11 +250,12 @@ class _MyCallScreenWidget extends State<CallScreenWidget>
   }
 
   void _toggleSpeaker() {
-    _speakerOn = !_speakerOn;
-    if (_localStream != null && !kIsWeb) {
-      _localStream!.getAudioTracks()[0].enableSpeakerphone(_speakerOn);
+    if (_localStream != null) {
+      _speakerOn = !_speakerOn;
+      if (!kIsWeb) {
+        _localStream!.getAudioTracks()[0].enableSpeakerphone(_speakerOn);
+      }
     }
-    setState(() {});
   }
 
   Widget _buildActionButtons() {
@@ -274,35 +275,17 @@ class _MyCallScreenWidget extends State<CallScreenWidget>
     switch (_state) {
       case CallStateEnum.NONE:
       case CallStateEnum.CONNECTING:
-        if (direction == 'INCOMING') {
-          // Thêm nút loa ngoài cho cuộc gọi đến
-          advanceActions.add(buildActionButton(
-            backgroundColor:
-                _speakerOn ? Colors.white : const Color(0x33D4D4D4),
-            icon: Icon(Icons.volume_up,
-                color: _speakerOn ? const Color(0xFF222222) : Colors.white,
-                size: 25),
-            onTap: () => _toggleSpeaker(),
-          ));
-          basicActions.add(ActionButton(
-            title: "Accept",
-            fillColor: Colors.green,
-            icon: Icons.phone,
-            onPressed: () => _handleAccept(),
-          ));
-          basicActions.addAll([...advanceActions, hangupBtn]);
-        } else {
-          // Thêm nút loa ngoài cho cuộc gọi đi
-          advanceActions.add(buildActionButton(
-            backgroundColor:
-                _speakerOn ? Colors.white : const Color(0x33D4D4D4),
-            icon: Icon(Icons.volume_up,
-                color: _speakerOn ? const Color(0xFF222222) : Colors.white,
-                size: 25),
-            onTap: () => _toggleSpeaker(),
-          ));
-          basicActions.addAll([...advanceActions, hangupBtn]);
-        }
+        // if (direction == 'INCOMING') {
+        //   basicActions.add(ActionButton(
+        //     title: "Accept",
+        //     fillColor: Colors.green,
+        //     icon: Icons.phone,
+        //     onPressed: () => _handleAccept(),
+        //   ));
+        //   basicActions.add(hangupBtn);
+        // } else {
+        //   basicActions.add(hangupBtn);
+        // }
         break;
       case CallStateEnum.ACCEPTED:
       case CallStateEnum.CONFIRMED:
@@ -331,18 +314,7 @@ class _MyCallScreenWidget extends State<CallScreenWidget>
       case CallStateEnum.ENDED:
         break;
       case CallStateEnum.PROGRESS:
-        {
-          // Thêm nút loa ngoài ngay cả khi đang đổ chuông
-          advanceActions.add(buildActionButton(
-            backgroundColor:
-                _speakerOn ? Colors.white : const Color(0x33D4D4D4),
-            icon: Icon(Icons.volume_up,
-                color: _speakerOn ? const Color(0xFF222222) : Colors.white,
-                size: 25),
-            onTap: () => _toggleSpeaker(),
-          ));
-          basicActions.addAll([...advanceActions, hangupBtn]);
-        }
+        basicActions.add(hangupBtn);
         break;
       default:
         print('Other state => $_state');

@@ -857,10 +857,10 @@ packages:
     dependency: "direct main"
     description:
       name: get
-      sha256: c79eeb4339f1f3deffd9ec912f8a923834bec55f7b49c9e882b8fef2c139d425
+      sha256: e4e7335ede17452b391ed3b2ede016545706c01a02292a6c97619705e7d2a85e
       url: "https://pub.dev"
     source: hosted
-    version: "4.7.2"
+    version: "4.6.6"
   google_fonts:
     dependency: "direct main"
     description:
@@ -957,6 +957,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.5.4"
+  image_gallery_saver_plus:
+    dependency: "direct main"
+    description:
+      name: image_gallery_saver_plus
+      sha256: "199b9e24f8d85e98f11e3d35571ab68ae50626ad40e2bb85c84383f69a6950ad"
+      url: "https://pub.dev"
+    source: hosted
+    version: "4.0.1"
   image_picker:
     dependency: "direct main"
     description:
@@ -1173,6 +1181,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.0.0"
+  mobile_scanner:
+    dependency: "direct main"
+    description:
+      name: mobile_scanner
+      sha256: c92c26bf2231695b6d3477c8dcf435f51e28f87b1745966b1fe4c47a286171ce
+      url: "https://pub.dev"
+    source: hosted
+    version: "7.2.0"
   octo_image:
     dependency: transitive
     description:
@@ -1373,6 +1389,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "6.0.3"
+  pretty_dio_logger:
+    dependency: "direct main"
+    description:
+      name: pretty_dio_logger
+      sha256: "36f2101299786d567869493e2f5731de61ce130faa14679473b26905a92b6407"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.4.0"
   random_string:
     dependency: transitive
     description:
@@ -1421,6 +1445,22 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.3.2"
+  share_plus:
+    dependency: "direct main"
+    description:
+      name: share_plus
+      sha256: "14c8860d4de93d3a7e53af51bff479598c4e999605290756bbbe45cf65b37840"
+      url: "https://pub.dev"
+    source: hosted
+    version: "12.0.1"
+  share_plus_platform_interface:
+    dependency: transitive
+    description:
+      name: share_plus_platform_interface
+      sha256: "88023e53a13429bd65d8e85e11a9b484f49d4c190abbd96c7932b74d6927cc9a"
+      url: "https://pub.dev"
+    source: hosted
+    version: "6.1.0"
   shared_preferences:
     dependency: "direct main"
     description:

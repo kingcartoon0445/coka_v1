@@ -1,5 +1,4 @@
 import 'package:coka/components/placeholders.dart';
-import 'package:coka/screen/main/customer_controlller.dart';
 import 'package:coka/screen/workspace/main_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -12,21 +11,7 @@ class CustomerList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // 先尝试使用 CustomerHomeController，如果不存在则使用 WorkspaceMainController
-    if (Get.isRegistered<CustomerHomeController>()) {
-      return GetBuilder<CustomerHomeController>(
-          builder: (controller) => _buildContent(controller));
-    } else if (Get.isRegistered<WorkspaceMainController>()) {
-      return GetBuilder<WorkspaceMainController>(
-          builder: (controller) => _buildContent(controller));
-    } else {
-      // 如果两个控制器都不存在，返回空组件
-      return const SizedBox.shrink();
-    }
-  }
-
-  // 辅助方法：构建内容（两个控制器有相同的接口）
-  Widget _buildContent(dynamic controller) {
+    return GetBuilder<WorkspaceMainController>(builder: (controller) {
       return Obx(() {
         return RefreshIndicator(
           onRefresh: () async {
@@ -90,5 +75,6 @@ class CustomerList extends StatelessWidget {
                     ),
         );
       });
+    });
   }
 }

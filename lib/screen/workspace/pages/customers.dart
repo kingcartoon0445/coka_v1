@@ -72,7 +72,9 @@ class _WorkspaceCustomersPageState extends State<WorkspaceCustomersPage> {
           prefs.setString(
               "hintCustomerData", jsonEncode(controller.hintPrefsData));
         }
-        if (controller.isDismiss) {
+        if (controller.isDismiss &&
+            controller.searchController.isAttached &&
+            controller.searchController.isOpen) {
           Get.back();
         }
       }

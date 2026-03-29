@@ -171,6 +171,14 @@ class _RegisterOrgPageState extends State<RegisterOrgPage> {
                   fontWeight: FontWeight.bold),
             ),
             centerTitle: true,
+            actions: [
+              IconButton(
+                  onPressed: () {},
+                  icon: const Icon(
+                    Icons.question_mark,
+                    color: Colors.black,
+                  ))
+            ],
           ),
           body: SafeArea(
               child: Container(

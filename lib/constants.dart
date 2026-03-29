@@ -262,7 +262,7 @@ const stageGroupList = [
   {"id": "e393d663-2d80-4d2e-8472-6c7e36ce2d53", "name": "Chưa xác định"}
 ];
 
-const stageObject = {
+Map<String, dynamic> stageObject = {
   "47ae12c7-8203-42c2-9374-85d05dca862e": {
     "name": "Tiềm năng",
     "data": [
@@ -451,7 +451,7 @@ void hideKeyboard(BuildContext context) {
   }
 }
 
-bool isSuccessStatus(int number) {
+bool isSuccessStatus(dynamic number) {
   if (number == 0 || (number >= 200 && number <= 299)) {
     return true;
   } else {

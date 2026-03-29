@@ -90,8 +90,7 @@ Widget createCircleAvatar(
           //       spreadRadius: 1)
           // ],
           color: Colors.white),
-      child:
-       CircleAvatar(
+      child: CircleAvatar(
         backgroundColor: avatarColor,
         radius: radius ?? 19,
         child: Text(

@@ -1,4 +1,6 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:coka/api/customer.dart';
+import 'package:coka/api/api_url.dart';
 import 'package:coka/components/auto_avatar.dart';
 import 'package:coka/components/awesome_alert.dart';
 import 'package:coka/components/image_viewer_page.dart';
@@ -72,6 +74,15 @@ class _InfoCustomerState extends State<InfoCustomer> {
           formData);
       if (isSuccessStatus(res["code"])) {
         g.Get.back();
+
+        var oldAvatar = customerController.dataItem['avatar'];
+        if (oldAvatar != null) {
+          String fullUrl = oldAvatar.contains("https")
+              ? oldAvatar
+              : '${apiBaseUrl.replaceFirst("dev", "api")}$oldAvatar';
+          await CachedNetworkImage.evictFromCache(fullUrl);
+        }
+
         controllerRefresh();
         successAlert(
           title: "Thành công",
@@ -79,6 +90,7 @@ class _InfoCustomerState extends State<InfoCustomer> {
           btnOkOnPress: () {},
         );
       } else {
+        g.Get.back();
         errorAlert(title: "Thất bại", desc: res["message"]);
       }
     }
@@ -125,7 +137,7 @@ class _InfoCustomerState extends State<InfoCustomer> {
       subPhoneList.clear();
       subEmailList.clear();
       tagList = customerController.dataItem["tags"];
-      if (customerController.dataItem["additional"].isNotEmpty) {
+      if (customerController.dataItem.containsKey("additional")) {
         for (var x in customerController.dataItem["additional"]) {
           if (x["key"] == "phone") {
             subPhoneList.add({"value": x["value"], "name": x["name"]});
@@ -163,12 +175,12 @@ class _InfoCustomerState extends State<InfoCustomer> {
           },
         if (customerController.dataItem["address"] != null)
           {"name": "Nơi ở", "value": customerController.dataItem["address"]},
-        if (customerController.dataItem["source"]?.isNotEmpty)
+        if (customerController.dataItem.containsKey("source"))
           {
             "name": "Nguồn khách hàng",
             "value": customerController.dataItem["source"]?.last["utmSource"]
           },
-        if (customerController.dataItem["source"]?.isNotEmpty)
+        if (customerController.dataItem.containsKey("source"))
           {
             "name": "Phân loại khách hàng",
             "value": customerController.dataItem["source"]?.last["sourceName"]
@@ -499,8 +511,9 @@ class _InfoCustomerState extends State<InfoCustomer> {
               Container(
                 constraints: const BoxConstraints(maxWidth: 125),
                 child: Text(
-                  (controller.dataItem["assignToUser"]?["fullName"] ??
-                          controller.dataItem["teamResponse"]?["name"]) ??
+                  (controller.dataItem.containsKey("assignToUsers")
+                          ? controller.dataItem["assignToUsers"][0]["fullName"]
+                          : controller.dataItem["teamResponse"]?["name"]) ??
                       "Chưa có quản lý",
                   style: const TextStyle(
                       fontSize: 16,

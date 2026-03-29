@@ -85,10 +85,9 @@ class Noti {
       requestBadgePermission: true,
       requestSoundPermission: true,
     );
-    InitializationSettings initializationSettings =
-        const InitializationSettings(
-            android: initializationSettingsAndroid,
-            iOS: initializationSettingsDarwin);
+    InitializationSettings initializationSettings = const InitializationSettings(
+        android: initializationSettingsAndroid,
+        iOS: initializationSettingsDarwin);
     await flutterLocalNotificationsPlugin.initialize(
       initializationSettings,
       onDidReceiveNotificationResponse: notificationTapBackground,

@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-
 import 'package:coka/api/conversation.dart';
 import 'package:coka/components/awesome_alert.dart';
 import 'package:coka/constants.dart';
@@ -50,12 +49,14 @@ class MessagesController extends GetxController {
   void setupFirebaseListener() {
     getOData().then((value) {
       final oId = jsonDecode(value)["id"];
-      DatabaseReference syncRef = FirebaseDatabase.instance.ref('root/OrganizationId: $oId');
+      DatabaseReference syncRef =
+          FirebaseDatabase.instance.ref('root/OrganizationId: $oId');
       onChangedListener = syncRef.onChildChanged.listen((event) async {
         DataSnapshot snapshot = event.snapshot;
         Map data = ((snapshot.value ?? {}) as Map).values.first;
         try {
-          var roomData = roomList.firstWhere((e) => e["id"] == data["ConversationId"]);
+          var roomData =
+              roomList.firstWhere((e) => e["id"] == data["ConversationId"]);
           roomData["snippet"] = data["Message"];
           roomData["updatedTime"] = DateTime.now().millisecondsSinceEpoch;
           roomData["isRead"] = false;
@@ -78,7 +79,9 @@ class MessagesController extends GetxController {
   }
 
   Future fetchRoomList(String searchText) async {
-    await ConvApi().getRoomList(null, null, offset.value, searchText: searchText).then((res) {
+    await ConvApi()
+        .getRoomList(null, null, offset.value, searchText: searchText)
+        .then((res) {
       if (isSuccessStatus(res["code"])) {
         roomList.addAll(res["content"]);
         isRoomEmpty.value = roomList.isEmpty;

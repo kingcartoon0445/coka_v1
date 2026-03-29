@@ -27,7 +27,7 @@ class ChatChannelController extends GetxController {
   }
 
   Future fetchChannelList() async {
-    await LeadApi().getFbMessageList().then((res) {
+    await LeadApi().getFbMessageList(subscribed: "messages").then((res) {
       if (isSuccessStatus(res["code"])) {
         channelList.value = res["content"];
         if (channelList.isEmpty) {
