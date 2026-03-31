@@ -5,10 +5,14 @@ import 'package:get/get.dart';
 
 class StageSelect extends StatelessWidget {
   final String defaultStage;
-  final Function selectedStage;
+  final String title;
+  final Function(String, String) selectedStage;
 
   const StageSelect(
-      {super.key, required this.defaultStage, required this.selectedStage});
+      {super.key,
+      required this.defaultStage,
+      required this.selectedStage,
+      required this.title});
 
   @override
   Widget build(BuildContext context) {
@@ -20,8 +24,9 @@ class StageSelect extends StatelessWidget {
           context: context,
           backgroundColor: Colors.white,
           isScrollControlled: true,
-          builder: (context) =>
-              StageSelectBottomSheet(selectedStage: selectedStage),
+          builder: (context) => StageSelectBottomSheet(
+            selectedStage: selectedStage,
+          ),
         );
       },
       child: Container(
@@ -40,13 +45,7 @@ class StageSelect extends StatelessWidget {
             const SizedBox(
               width: 6,
             ),
-            Text(
-                defaultStage == ""
-                    ? "Chọn trạng thái"
-                    : stageList
-                            .firstWhere((e) => e["id"] == defaultStage)["name"]
-                            ?.toString() ??
-                        "Chọn trạng thái",
+            Text(defaultStage == "" ? "Chọn trạng thái" : title,
                 style: const TextStyle(fontWeight: FontWeight.bold)),
             const SizedBox(
               width: 4,
@@ -63,7 +62,7 @@ class StageSelect extends StatelessWidget {
 }
 
 class StageSelectBottomSheet extends StatefulWidget {
-  final Function selectedStage;
+  final Function(String, String) selectedStage;
 
   const StageSelectBottomSheet({super.key, required this.selectedStage});
 
@@ -102,7 +101,7 @@ class _StageSelectBottomSheetState extends State<StageSelectBottomSheet> {
                     return ListTile(
                         title: Text(data["name"]),
                         onTap: () {
-                          widget.selectedStage(data["id"]);
+                          widget.selectedStage(data["id"], data["name"]);
                           Get.back();
                         },
                         contentPadding: const EdgeInsets.symmetric(

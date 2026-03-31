@@ -1,4 +1,3 @@
-
 import 'package:coka/api/callcenter.dart';
 import 'package:coka/api/customer.dart';
 import 'package:coka/components/awesome_alert.dart';
@@ -108,9 +107,10 @@ class _JourneyLayoutState extends State<JourneyLayout> {
         if (isKeyboardVisible)
           StageSelect(
             defaultStage: controller.stageId.value,
-            // defaultStage: "",
-            selectedStage: (stage) async {
+            title: controller.stageName.value,
+            selectedStage: (stage, name) async {
               controller.stageId.value = stage;
+              controller.stageName.value = name;
             },
           ),
         Divider(

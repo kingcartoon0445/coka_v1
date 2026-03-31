@@ -111,35 +111,37 @@ class WorkspaceMainController extends GetxController
       if (res != null && isSuccessStatus(res["code"])) {
         List contentList = res["content"] ?? [];
         Map<String, dynamic> newStageObj = {};
-        
+
         for (var item in contentList) {
           String? groupId = item["stageGroupId"];
           if (groupId == null) continue;
-          
+
           if (!newStageObj.containsKey(groupId)) {
             newStageObj[groupId] = {
               "name": item["stageGroup"]?["name"] ?? "Không xác định",
               "data": []
             };
           }
-          
+
           newStageObj[groupId]["data"].add({
-            "id": item["stageId"],
+            "id": item.containsKey("stageId") ? item["stageId"] : item["id"],
             "name": item["name"]
           });
         }
-        
+
         // Cập nhật stageObject toàn cục
         if (newStageObj.isNotEmpty) {
           stageObject.clear();
           stageObject.addAll(newStageObj);
         }
-        
+
         // Cập nhật lại các biến observable phụ thuộc
-        stageValueCustomerChartObject.value = Map.from(jsonDecode(jsonEncode(stageObject)));
+        stageValueCustomerChartObject.value =
+            Map.from(jsonDecode(jsonEncode(stageObject)));
         if (Get.isRegistered<DashboardController>()) {
           final dashCtrl = Get.find<DashboardController>();
-          dashCtrl.stageValueCustomerChartObject.value = Map.from(jsonDecode(jsonEncode(stageObject)));
+          dashCtrl.stageValueCustomerChartObject.value =
+              Map.from(jsonDecode(jsonEncode(stageObject)));
           dashCtrl.fetchByStage();
         }
       }
@@ -178,7 +180,7 @@ class WorkspaceMainController extends GetxController
     isLoading[selectedGroupIndex.value] = true;
     getHintCustomer();
     fetchWorkspaceDetail();
-    
+
     // Đợi fetch stages xong mới gọi thống kê và load data customer
     loadStageList().then((_) {
       fetchByStage();

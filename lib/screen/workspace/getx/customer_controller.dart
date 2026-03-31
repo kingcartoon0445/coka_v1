@@ -9,6 +9,7 @@ class CustomerController extends GetxController {
 
   final dataItem = {}.obs;
   final stageId = "".obs;
+  final stageName = "".obs;
   final isNew = false.obs;
   final journeyList = [].obs;
   final isLoading = false.obs;

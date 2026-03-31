@@ -19,6 +19,7 @@ class NotificationController extends GetxController {
   void onInit() {
     // TODO: implement onInit
     super.onInit();
+    fetchUnreadCount();
     onRefresh();
     sc.addListener(() {
       if (sc.position.pixels >= sc.position.maxScrollExtent) {
@@ -60,6 +61,22 @@ class NotificationController extends GetxController {
           errorAlert(title: "Lỗi", desc: res["message"]);
         }
       });
-    } catch (e) {}
+    } catch (e) {
+      print("Lỗi khi fetchNotification: $e");
+    }
+  }
+
+  Future fetchUnreadCount() async {
+    try {
+      await NotificationApi().getUnreadCount().then((res) {
+        if (isSuccessStatus(res["code"])) {
+          if (res["content"] != null) {
+            readCount.value = int.tryParse(res["content"].toString()) ?? 0;
+          }
+        }
+      });
+    } catch (e) {
+      print("Lỗi khi load count unread: $e");
+    }
   }
 }

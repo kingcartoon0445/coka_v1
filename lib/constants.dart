@@ -262,7 +262,7 @@ const stageGroupList = [
   {"id": "e393d663-2d80-4d2e-8472-6c7e36ce2d53", "name": "Chưa xác định"}
 ];
 
-Map<String, dynamic> stageObject = {
+final Map<String, dynamic> stageObject = {
   "47ae12c7-8203-42c2-9374-85d05dca862e": {
     "name": "Tiềm năng",
     "data": [
