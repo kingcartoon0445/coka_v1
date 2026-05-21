@@ -452,6 +452,10 @@ void hideKeyboard(BuildContext context) {
 }
 
 bool isSuccessStatus(dynamic number) {
+  if (number == null) {
+    return false;
+  }
+
   if (number == 0 || (number >= 200 && number <= 299)) {
     return true;
   } else {

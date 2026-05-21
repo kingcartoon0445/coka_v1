@@ -37,8 +37,6 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
   final searchText = TextEditingController();
   Timer? _debounce;
   late StreamSubscription onChangedListener;
-  late StreamSubscription onAddedListener;
-  late StreamSubscription onValueListener;
 
   Future onRefresh() async {
     roomList.clear();
@@ -70,22 +68,23 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
     getOData().then((value) {
       final oId = jsonDecode(value)["id"];
       print(oId);
-      DatabaseReference syncRef =
-          FirebaseDatabase.instance.ref('root/OrganizationId: $oId');
-      onChangedListener = syncRef.onChildChanged.listen((event) async {
-        print("hasChanged");
-        DataSnapshot snapshot = event.snapshot;
-        Map data = ((snapshot.value ?? {}) as Map).values.first;
+      DatabaseReference syncRef = FirebaseDatabase.instance
+          .ref('root/OrganizationId: $oId/CreateOrUpdateConversation');
+      onChangedListener = syncRef.onValue.listen((event) async {
+        final value = event.snapshot.value;
+        if (value is! Map) return;
+
+        final data = Map<String, dynamic>.from(value);
+        if (data["ConversationId"] == null) return;
+
         try {
           var roomData =
               roomList.firstWhere((e) => e["id"] == data["ConversationId"]);
-          print(data["Message"]);
           roomData["snippet"] = data["Message"];
           roomData["updatedTime"] = DateTime.now().millisecondsSinceEpoch;
           roomData["isRead"] = false;
           setState(() {});
         } catch (e) {
-          print("reload");
           roomList.clear();
           offset = 0;
           fetchRoomList("").then((value) => setState(() {}));
@@ -168,8 +167,7 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16),
             child: SearchBar(
-              backgroundColor:
-                  const WidgetStatePropertyAll(Color(0xFFF2F3F5)),
+              backgroundColor: const WidgetStatePropertyAll(Color(0xFFF2F3F5)),
               hintText: "Tìm kiếm",
               controller: searchText,
               onChanged: (value) {
@@ -233,19 +231,35 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
                                           roomData["updatedTime"]));
                                   bool isRead = roomData["isRead"];
                                   return ListTile(
-                                      onTap: () {
+                                      onTap: () async {
                                         setState(() {
                                           roomData["isRead"] = true;
                                         });
-                                        Get.to(() => ChatConvPage(
-                                              pageAvatar: widget.pageAvatar,
-                                              pageName: widget.pageName,
-                                              provider: widget.provider,
-                                              personAvatar: avatar,
-                                              convId: roomData["id"],
-                                              personName: title,
-                                              personId: roomData["personId"],
-                                            ));
+                                        final result =
+                                            await Get.to(() => ChatConvPage(
+                                                  pageAvatar: widget.pageAvatar,
+                                                  pageName: widget.pageName,
+                                                  provider: widget.provider,
+                                                  personAvatar: avatar,
+                                                  convId: roomData["id"],
+                                                  personName: title,
+                                                  personId:
+                                                      roomData["personId"],
+                                                ));
+
+                                        if (result is Map<String, dynamic>) {
+                                          setState(() {
+                                            if (result["snippet"] != null) {
+                                              roomData["snippet"] =
+                                                  result["snippet"];
+                                            }
+                                            if (result["updatedTime"] != null) {
+                                              roomData["updatedTime"] =
+                                                  result["updatedTime"];
+                                            }
+                                            roomData["isRead"] = true;
+                                          });
+                                        }
                                       },
                                       title: Text(title,
                                           style: TextStyle(

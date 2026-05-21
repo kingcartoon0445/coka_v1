@@ -100,10 +100,15 @@ class ConvApi {
   Future sendConv(data) async {
     final apiToken = await getAccessToken();
     try {
+      final payload = Map<String, dynamic>.from(data)
+        ..removeWhere((key, value) =>
+            value == null ||
+            value.toString().trim().isEmpty ||
+            value == "undefined");
+
       final response = await dio.post(sendConvApi,
-          data: data,
+          data: FormData.fromMap(payload),
           options: Options(headers: {
-            "Content-Type": "application/json",
             "Authorization": "Bearer $apiToken",
             "organizationId": jsonDecode(await getOData())["id"],
           }));

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:developer';
 import 'package:coka/api/conversation.dart';
 import 'package:coka/components/awesome_alert.dart';
 import 'package:coka/constants.dart';
@@ -49,11 +50,16 @@ class MessagesController extends GetxController {
   void setupFirebaseListener() {
     getOData().then((value) {
       final oId = jsonDecode(value)["id"];
-      DatabaseReference syncRef =
-          FirebaseDatabase.instance.ref('root/OrganizationId: $oId');
-      onChangedListener = syncRef.onChildChanged.listen((event) async {
-        DataSnapshot snapshot = event.snapshot;
-        Map data = ((snapshot.value ?? {}) as Map).values.first;
+      DatabaseReference syncRef = FirebaseDatabase.instance
+          .ref('root/OrganizationId: $oId/CreateOrUpdateConversation');
+      onChangedListener = syncRef.onValue.listen((event) async {
+        log("duy: listen api firebase mess");
+        final value = event.snapshot.value;
+        if (value is! Map) return;
+
+        final data = Map<String, dynamic>.from(value);
+        if (data["ConversationId"] == null) return;
+
         try {
           var roomData =
               roomList.firstWhere((e) => e["id"] == data["ConversationId"]);

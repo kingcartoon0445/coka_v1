@@ -4,9 +4,8 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.os.Build;
 
-import io.flutter.app.FlutterApplication;
-
-public class Application extends FlutterApplication {
+// Không dùng FlutterApplication (đã deprecated), dùng android.app.Application tiêu chuẩn
+public class Application extends android.app.Application {
     // ...
     @Override
     public void onCreate() {

@@ -39,15 +39,24 @@ class ChatConvPage extends StatefulWidget {
 class _ChatConvPageState extends State<ChatConvPage> {
   final chatController = TextEditingController();
   final homeController = Get.put(HomeController());
-  late StreamSubscription onValueListener;
   late StreamSubscription onChangedListener;
-  late StreamSubscription onAddedListener;
   ScrollController sc = ScrollController();
   var isLastMessage = false;
   var isConvFetching = false;
   var isConvEmpty = false;
   var convList = [];
   var offset = 0;
+  String? latestMessagePreview;
+  int? latestMessageTimestamp;
+  bool _hasReceivedInitialRealtimeEvent = false;
+
+  Future<bool> _handleBack() async {
+    Get.back(result: {
+      "snippet": latestMessagePreview,
+      "updatedTime": latestMessageTimestamp,
+    });
+    return false;
+  }
 
   Future onRefresh() async {
     isConvFetching = true;
@@ -85,10 +94,23 @@ class _ChatConvPageState extends State<ChatConvPage> {
       final oId = jsonDecode(value)["id"];
       DatabaseReference convRef = FirebaseDatabase.instance
           .ref('root/OrganizationId: $oId/CreateOrUpdateConversation');
-      onChangedListener = convRef.onChildChanged.listen((event) {
-        DataSnapshot snapshot = event.snapshot;
-        Map data = (snapshot.value ?? {}) as Map;
+      onChangedListener = convRef.onValue.listen((event) {
+        final value = event.snapshot.value;
+        if (value is! Map) return;
+
+        final data = Map<String, dynamic>.from(value);
+        if (!_hasReceivedInitialRealtimeEvent) {
+          _hasReceivedInitialRealtimeEvent = true;
+          return;
+        }
+
         if (data["ConversationId"] == widget.convId) {
+          final latestMessage = convList.isNotEmpty ? convList.first : null;
+          final isDuplicate = latestMessage != null &&
+              latestMessage["message"] == data["Message"] &&
+              latestMessage["to"] == data["To"];
+          if (isDuplicate) return;
+
           addMessage(data["Message"], data["To"], data["ToName"]);
         }
       });
@@ -140,13 +162,30 @@ class _ChatConvPageState extends State<ChatConvPage> {
   }
 
   Future sendMessage() async {
-    addMessage(chatController.text, widget.personId, widget.personName);
+    final message = chatController.text.trim();
+    if (message.isEmpty) return;
+
+    addMessage(message, widget.personId, widget.personName);
+    latestMessagePreview = message;
+    latestMessageTimestamp = DateTime.now().millisecondsSinceEpoch;
     ConvApi().sendConv({
       "conversationId": widget.convId,
-      "message": chatController.text
+      "messageId": null,
+      "message": message
     }).then((res) {
+      if (res is! Map<String, dynamic>) {
+        errorAlert(
+            title: "Lỗi",
+            desc: "Không thể gửi tin nhắn. Phản hồi từ hệ thống không hợp lệ.");
+        return;
+      }
+
       if (!isSuccessStatus(res["code"])) {
-        errorAlert(title: "Lỗi", desc: res["message"]);
+        print(res);
+        errorAlert(
+            title: "Lỗi",
+            desc: res["message"] ??
+                "Không thể gửi tin nhắn. Vui lòng thử lại sau.");
       }
     });
     chatController.clear();
@@ -157,215 +196,229 @@ class _ChatConvPageState extends State<ChatConvPage> {
     return KeyboardVisibilityBuilder(builder: (context, isKeyboardVisible) {
       return Theme(
         data: ThemeData(primaryColor: Colors.white),
-        child: Scaffold(
-          backgroundColor: const Color(0xFFF8F8F8),
-          appBar: AppBar(
+        child: WillPopScope(
+          onWillPop: _handleBack,
+          child: Scaffold(
             backgroundColor: const Color(0xFFF8F8F8),
-            elevation: 2,
-            shadowColor: Colors.black54,
-            title: ListTile(
-                contentPadding: EdgeInsets.zero,
-                title: Text(
-                  widget.personName!,
-                  style: const TextStyle(fontSize: 14, height: 1.4),
-                ),
-                subtitle: Text(widget.pageName!,
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 1,
-                    style: const TextStyle(fontSize: 12)),
-                leading: widget.personAvatar == null
-                    ? createCircleAvatar(name: widget.personName!, radius: 20)
-                    : CircleAvatar(
-                        backgroundImage: getAvatarProvider(
-                            widget.personAvatar ?? defaultAvatar),
-                        radius: 20,
-                      )),
-            automaticallyImplyLeading: true,
-            iconTheme: const IconThemeData(color: Colors.black),
-          ),
-          body: SafeArea(
-            child: Stack(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 50.0),
-                  child: SizedBox(
-                    height: double.infinity,
-                    child: Stack(
-                      alignment: Alignment.bottomCenter,
-                      children: [
-                        ListView.builder(
-                            controller: sc,
-                            itemCount: convList.length,
-                            padding: const EdgeInsets.symmetric(vertical: 20),
-                            itemBuilder: (context, index) {
-                              final convData = convList[index];
-                              final message = convData["message"];
-                              final isPersonal =
-                                  convData["to"] == widget.personId
-                                      ? false
-                                      : true;
+            appBar: AppBar(
+              backgroundColor: const Color(0xFFF8F8F8),
+              elevation: 2,
+              shadowColor: Colors.black54,
+              leading: IconButton(
+                onPressed: _handleBack,
+                icon: const Icon(Icons.arrow_back),
+              ),
+              title: ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(
+                    widget.personName!,
+                    style: const TextStyle(fontSize: 14, height: 1.4),
+                  ),
+                  subtitle: Text(widget.pageName!,
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                      style: const TextStyle(fontSize: 12)),
+                  leading: widget.personAvatar == null
+                      ? createCircleAvatar(name: widget.personName!, radius: 20)
+                      : CircleAvatar(
+                          backgroundImage: getAvatarProvider(
+                              widget.personAvatar ?? defaultAvatar),
+                          radius: 20,
+                        )),
+              automaticallyImplyLeading: false,
+              iconTheme: const IconThemeData(color: Colors.black),
+            ),
+            body: SafeArea(
+              child: Stack(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 50.0),
+                    child: SizedBox(
+                      height: double.infinity,
+                      child: Stack(
+                        alignment: Alignment.bottomCenter,
+                        children: [
+                          ListView.builder(
+                              controller: sc,
+                              itemCount: convList.length,
+                              padding: const EdgeInsets.symmetric(vertical: 20),
+                              itemBuilder: (context, index) {
+                                final convData = convList[index];
+                                final message = convData["message"];
+                                final isPersonal =
+                                    convData["to"] == widget.personId
+                                        ? false
+                                        : true;
 
-                              final messagePosition = getMessagePosition(
-                                  convList, index, widget.personId!);
-                              final createdTime =
-                                  DateTime.fromMillisecondsSinceEpoch(
-                                      convData["timestamp"]);
-                              final previousMessageTime =
-                                  index < convList.length - 1
-                                      ? DateTime.fromMillisecondsSinceEpoch(
-                                          convList[index + 1]["timestamp"])
-                                      : null;
+                                final messagePosition = getMessagePosition(
+                                    convList, index, widget.personId!);
+                                final createdTime =
+                                    DateTime.fromMillisecondsSinceEpoch(
+                                        convData["timestamp"]);
+                                final previousMessageTime =
+                                    index < convList.length - 1
+                                        ? DateTime.fromMillisecondsSinceEpoch(
+                                            convList[index + 1]["timestamp"])
+                                        : null;
 
-                              final isSameDay = previousMessageTime != null &&
-                                  createdTime.year ==
-                                      previousMessageTime.year &&
-                                  createdTime.month ==
-                                      previousMessageTime.month &&
-                                  createdTime.day == previousMessageTime.day;
+                                final isSameDay = previousMessageTime != null &&
+                                    createdTime.year ==
+                                        previousMessageTime.year &&
+                                    createdTime.month ==
+                                        previousMessageTime.month &&
+                                    createdTime.day == previousMessageTime.day;
 
-                              final time = diffFunc(
-                                  DateTime.fromMillisecondsSinceEpoch(
-                                      convData["timestamp"]));
-                              final fullTime = DateFormat('dd-MM-yyyy HH:mm:ss')
-                                  .format(DateTime.fromMillisecondsSinceEpoch(
-                                      convData["timestamp"]));
-                              final borderRadius = getMessageBorderRadius(
-                                  messagePosition, isPersonal);
-                              final isGpt = convData["isGpt"];
-                              return message == null
-                                  ? Container()
-                                  : Column(
-                                      children: [
-                                        if (convList.length - 1 == index &&
-                                            isLastMessage)
-                                          Padding(
-                                            padding: const EdgeInsets.only(
-                                                bottom: 12.0),
-                                            child: Row(children: <Widget>[
-                                              const Expanded(
-                                                  child: Divider(
-                                                color: Colors.black54,
-                                              )),
-                                              Padding(
-                                                padding:
-                                                    const EdgeInsets.symmetric(
-                                                        horizontal: 4.0),
-                                                child: Text(
-                                                  "Cuộc trò chuyện bắt đầu vào $time",
-                                                ),
-                                              ),
-                                              const Expanded(
-                                                  child: Divider(
-                                                color: Colors.black54,
-                                              )),
-                                            ]),
-                                          ),
-                                        if (!isSameDay &&
-                                            convList.length - 1 != index &&
-                                            index != 0)
-                                          Padding(
-                                            padding: const EdgeInsets.symmetric(
-                                                vertical: 12.0),
-                                            child: Center(child: Text(time)),
-                                          ),
-                                        Container(
-                                            width: double.infinity,
-                                            padding: const EdgeInsets.symmetric(
-                                                horizontal: 16, vertical: 1),
-                                            alignment: isPersonal
-                                                ? Alignment.centerLeft
-                                                : Alignment.centerRight,
-                                            child: Row(
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: [
-                                                ((isPersonal &&
-                                                            messagePosition
-                                                                    .name ==
-                                                                "Single") ||
-                                                        (isPersonal &&
-                                                            messagePosition
-                                                                    .name ==
-                                                                "FirstInReply"))
-                                                    ? widget.personAvatar ==
-                                                            null
-                                                        ? createCircleAvatar(
-                                                            name: widget
-                                                                .personName!,
-                                                            radius: 16)
-                                                        : CircleAvatar(
-                                                            backgroundImage:
-                                                                getAvatarProvider(
-                                                                    widget.personAvatar ??
-                                                                        defaultAvatar),
-                                                            radius: 16,
-                                                          )
-                                                    : const SizedBox(
-                                                        width: 32,
-                                                      ),
-                                                const SizedBox(
-                                                  width: 5,
-                                                ),
+                                final time = diffFunc(
+                                    DateTime.fromMillisecondsSinceEpoch(
+                                        convData["timestamp"]));
+                                final fullTime =
+                                    DateFormat('dd-MM-yyyy HH:mm:ss').format(
+                                        DateTime.fromMillisecondsSinceEpoch(
+                                            convData["timestamp"]));
+                                final borderRadius = getMessageBorderRadius(
+                                    messagePosition, isPersonal);
+                                final isGpt = convData["isGpt"];
+                                return message == null
+                                    ? Container()
+                                    : Column(
+                                        children: [
+                                          if (convList.length - 1 == index &&
+                                              isLastMessage)
+                                            Padding(
+                                              padding: const EdgeInsets.only(
+                                                  bottom: 12.0),
+                                              child: Row(children: <Widget>[
+                                                const Expanded(
+                                                    child: Divider(
+                                                  color: Colors.black54,
+                                                )),
                                                 Padding(
-                                                  padding: EdgeInsets.only(
-                                                      top: messagePosition
-                                                                      .name ==
-                                                                  "LastInReply" ||
+                                                  padding: const EdgeInsets
+                                                      .symmetric(
+                                                      horizontal: 4.0),
+                                                  child: Text(
+                                                    "Cuộc trò chuyện bắt đầu vào $time",
+                                                  ),
+                                                ),
+                                                const Expanded(
+                                                    child: Divider(
+                                                  color: Colors.black54,
+                                                )),
+                                              ]),
+                                            ),
+                                          if (!isSameDay &&
+                                              convList.length - 1 != index &&
+                                              index != 0)
+                                            Padding(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                      vertical: 12.0),
+                                              child: Center(child: Text(time)),
+                                            ),
+                                          Container(
+                                              width: double.infinity,
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                      horizontal: 16,
+                                                      vertical: 1),
+                                              alignment: isPersonal
+                                                  ? Alignment.centerLeft
+                                                  : Alignment.centerRight,
+                                              child: Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  ((isPersonal &&
                                                               messagePosition
                                                                       .name ==
-                                                                  "Single"
-                                                          ? 8
-                                                          : 0),
-                                                  child: Tooltip(
-                                                    message: fullTime,
-                                                    triggerMode:
-                                                        TooltipTriggerMode.tap,
-                                                    child: Container(
-                                                      constraints:
-                                                          BoxConstraints(
-                                                              maxWidth:
-                                                                  Get.width -
-                                                                      80),
-                                                      padding: const EdgeInsets
-                                                          .symmetric(
-                                                          vertical: 8,
-                                                          horizontal: 12),
-                                                      decoration: BoxDecoration(
-                                                          borderRadius:
-                                                              borderRadius,
-                                                          color: isPersonal
-                                                              ? Colors.white
-                                                              : const Color(
-                                                                  0xFFE3DFFF)),
-                                                      child: Text(
-                                                        message,
-                                                        style: const TextStyle(
-                                                            fontSize: 16,
-                                                            color:
-                                                                Colors.black87),
+                                                                  "Single") ||
+                                                          (isPersonal &&
+                                                              messagePosition
+                                                                      .name ==
+                                                                  "FirstInReply"))
+                                                      ? widget.personAvatar ==
+                                                              null
+                                                          ? createCircleAvatar(
+                                                              name: widget
+                                                                  .personName!,
+                                                              radius: 16)
+                                                          : CircleAvatar(
+                                                              backgroundImage:
+                                                                  getAvatarProvider(
+                                                                      widget.personAvatar ??
+                                                                          defaultAvatar),
+                                                              radius: 16,
+                                                            )
+                                                      : const SizedBox(
+                                                          width: 32,
+                                                        ),
+                                                  const SizedBox(
+                                                    width: 5,
+                                                  ),
+                                                  Padding(
+                                                    padding: EdgeInsets.only(
+                                                        top: messagePosition
+                                                                        .name ==
+                                                                    "LastInReply" ||
+                                                                messagePosition
+                                                                        .name ==
+                                                                    "Single"
+                                                            ? 8
+                                                            : 0),
+                                                    child: Tooltip(
+                                                      message: fullTime,
+                                                      triggerMode:
+                                                          TooltipTriggerMode
+                                                              .tap,
+                                                      child: Container(
+                                                        constraints:
+                                                            BoxConstraints(
+                                                                maxWidth:
+                                                                    Get.width -
+                                                                        80),
+                                                        padding:
+                                                            const EdgeInsets
+                                                                .symmetric(
+                                                                vertical: 8,
+                                                                horizontal: 12),
+                                                        decoration: BoxDecoration(
+                                                            borderRadius:
+                                                                borderRadius,
+                                                            color: isPersonal
+                                                                ? Colors.white
+                                                                : const Color(
+                                                                    0xFFE3DFFF)),
+                                                        child: Text(
+                                                          message,
+                                                          style:
+                                                              const TextStyle(
+                                                                  fontSize: 16,
+                                                                  color: Colors
+                                                                      .black87),
+                                                        ),
                                                       ),
                                                     ),
                                                   ),
-                                                ),
-                                              ],
-                                            )),
-                                      ],
-                                    );
-                            },
-                            shrinkWrap: true,
-                            reverse: true),
-                        if (isConvFetching)
-                          const Positioned(
-                              top: 5, child: CircularProgressIndicator())
-                      ],
+                                                ],
+                                              )),
+                                        ],
+                                      );
+                              },
+                              shrinkWrap: true,
+                              reverse: true),
+                          if (isConvFetching)
+                            const Positioned(
+                                top: 5, child: CircularProgressIndicator())
+                        ],
+                      ),
                     ),
                   ),
-                ),
-                Positioned(
-                    bottom: 0, // Đặt vị trí dưới cùng
-                    left: 0, // Đặt vị trí bên trái
-                    right: 0, // Đặt vị trí bên phải,
-                    child: buildChatBottom(isKeyboardVisible))
-              ],
+                  Positioned(
+                      bottom: 0, // Đặt vị trí dưới cùng
+                      left: 0, // Đặt vị trí bên trái
+                      right: 0, // Đặt vị trí bên phải,
+                      child: buildChatBottom(isKeyboardVisible))
+                ],
+              ),
             ),
           ),
         ),

@@ -42,6 +42,14 @@ class _ChatChannelPageState extends State<ChatChannelPage> {
   final chatChannelController = Get.put(ChatChannelController());
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      chatChannelController.onRefresh();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     return GetBuilder<ChatChannelController>(builder: (controller) {
       return Scaffold(

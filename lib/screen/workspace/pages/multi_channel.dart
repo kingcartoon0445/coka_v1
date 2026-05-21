@@ -25,7 +25,7 @@ class _MultiChannelState extends State<MultiChannel> {
   Widget build(BuildContext context) {
     final dataMenuObject = {
       "chanelChat": {
-        "name": "Chanel Chat",
+        "name": "Chat đa kênh",
         "onClick": () {
           Navigator.push(context,
               MaterialPageRoute(builder: (context) => const ChatChannelPage()));

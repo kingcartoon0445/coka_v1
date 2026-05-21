@@ -6,14 +6,18 @@ allprojects {
     }
 }
 
-rootProject.buildDir = '../build'
+// Dùng layout.buildDirectory thay vì buildDir (deprecated từ Gradle 8.x, bỏ hoàn toàn ở Gradle 9.0)
+def buildDir = rootProject.layout.buildDirectory.get().asFile.parentFile.toPath().resolve("build").toFile()
+
 subprojects {
-    project.buildDir = "${rootProject.buildDir}/${project.name}"
+    // Đặt thư mục build theo cấu trúc ../build/<project-name>
+    project.layout.buildDirectory.set(new File(buildDir, project.name))
 }
 subprojects {
     project.evaluationDependsOn(':app')
 }
 
 tasks.register("clean", Delete) {
-    delete rootProject.buildDir
+    // Xóa thư mục build gốc
+    delete buildDir
 }
